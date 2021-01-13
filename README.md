@@ -4,7 +4,7 @@ Technical questions about Model CR are welcome in this repository [Issues](https
 
 Inquiries can be made in English or Japanese.
 
-Inquiries to Issues can be about Model CR hardware or general communication through the libraries.
+Inquiries to Issues can be about Model CR hardware or general communication through [the libraries](https://github.com/WHILL/Model_CR_Technical_Support/blob/main/README.md#libraries).
 
 Comments on each library are also welcome at the repository of each library.
 
