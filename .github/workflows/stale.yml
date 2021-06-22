@@ -1,0 +1,21 @@
+name: Mark stale issues and pull requests
+
+on:
+  schedule:
+  - cron: '0 2 * * *'
+
+jobs:
+  stale:
+
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+
+    steps:
+    - uses: actions/stale@v3
+      with:
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
+        stale-issue-message: 'このissueは30日間更新がないため5日後にcloseします。closeしたくない場合は[no-issue-activity] ラベルを外してください。'
+        stale-issue-label: 'no-issue-activity'
+        days-before-stale: 30
+        days-before-close: 5
