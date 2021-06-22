@@ -7,6 +7,8 @@ Inquiries can be made in English or Japanese.
 
 Inquiries to Issues can be about Model CR hardware or general communication through [the libraries](https://github.com/WHILL/Model_CR_Technical_Support/blob/main/README.md#libraries).
 
+If the issue has been resolved, please close it.
+
 Comments on each library are also welcome at the repository of each library.
 
 ---
@@ -18,6 +20,8 @@ IssuesのNew Issueで質問を起票してください。WHILLのサポートメ
 お問い合わせは英語でも日本語でも構いません。
 
 Issuesへのお問い合わせは、Model CRのハードウェアに関するものや、ライブラリを通じた一般的な通信に関するものが対象です。
+
+問題が解決したIssueはCloseしてください。
 
 各ライブラリに対するコメント・お問い合わせは，各ライブラリのリポジトリで受け付けています。
 
