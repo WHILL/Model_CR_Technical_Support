@@ -40,3 +40,9 @@ https://whill.inc/jp/model-cr
 
 - arduino : [whill-sdk-arduino](https://github.com/WHILL/whill-sdk-arduino)
 
+## Tools
+ - [cr_connection_checker](https://github.com/whill-labs/cr_connection_checker)
+   - Model CRの接続確認用のツール
+
+
+
