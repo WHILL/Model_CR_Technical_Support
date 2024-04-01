@@ -31,8 +31,10 @@ Issuesへのお問い合わせは、Model CRシリーズのハードウェアに
 
 <img src="https://user-images.githubusercontent.com/20053970/104392422-5fba7a80-5585-11eb-92dd-53753f64624d.png" width=30%>
 
-## Product
-https://whill.inc/jp/model-cr2
+## Products
+- [WHILL Model CR2](https://whill.inc/jp/model-cr2)
+- [WHILL Powered Mobility Platform](https://whill-mrp.notion.site/WHILL-f975baf4015e4eebbb243a7d331efb0a)
+(Wheeled Robot Base, Electrical System Kit, Omni-Platform, and WHILL Model CR2)
 
 ## Communication Specifications
 - Main Part : [WHILL_Control_System_Protocol_Specification.pdf](https://github.com/WHILL/whill_control_system_protocol_specification/blob/master/WHILL_Control_System_Protocol_Specification.pdf)
