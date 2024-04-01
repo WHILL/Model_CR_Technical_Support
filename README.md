@@ -2,7 +2,7 @@
 [EN]
 Technical questions about Model CR series are welcome in this repository [Issues](https://github.com/WHILL/Model_CR_Technical_Support/issues).
 Please submit your question in the New Issue section of Issues and a WHILL support member will answer it.
-(**Note:** "Model CR series" here refers to Model CR and Model CR2)
+(**Note:** "Model CR series" here refers to Model CR, Model CR2, Wheeled Robot Base, Electrical System Kit, and Omni-Platform)
 
 Inquiries can be made in English or Japanese.
 
@@ -18,7 +18,7 @@ Comments on each library are also welcome at the repository of each library.
 [JP]
 Model CRシリーズに関する技術的な質問は、このリポジトリ[Issues](https://github.com/WHILL/Model_CR_Technical_Support/issues)で受け付けています。
 IssuesのNew Issueで質問を起票してください。WHILLのサポートメンバーが回答致します。
-（**注釈：**『Model CRシリーズ』は、Model CRおよびModel CR2を指します）
+（**注釈：**『Model CRシリーズ』は、Model CR、Model CR2、ロボット台車、電装系キット、オムニプラットフォームを指します）
 
 お問い合わせは英語でも日本語でも構いません。
 
