@@ -1,4 +1,5 @@
-# Model_CR_Series_Technical_Support
+# Model CR Series Technical Support
+
 [EN]
 Technical questions about Model CR series are welcome in this repository [Issues](https://github.com/WHILL/Model_CR_Technical_Support/issues).
 Please submit your question in the New Issue section of Issues and a WHILL support member will answer it.
@@ -29,26 +30,36 @@ Issuesへのお問い合わせは、Model CRシリーズのハードウェアに
 
 各ライブラリに対するコメント・お問い合わせは，各ライブラリのリポジトリで受け付けています。
 
-<img src="https://user-images.githubusercontent.com/20053970/104392422-5fba7a80-5585-11eb-92dd-53753f64624d.png" width=30%>
 
 ## Products
+
+<img width=22% title="WHILL Model CR2" src="https://github.com/WHILL/Model_CR_Technical_Support/assets/129816934/387a8aac-3808-4727-895d-9857059ee342">
+<img width=24% title="Wheeled Robot Base" src="https://github.com/WHILL/Model_CR_Technical_Support/assets/129816934/6a63ed45-9e0c-40ca-b71c-8dff614af141">
+<img width=24% title="Omni-Platform" src="https://github.com/WHILL/Model_CR_Technical_Support/assets/129816934/4fadb6b7-97f8-438a-9747-c4161dec69b6">
+
 - [WHILL Model CR2](https://whill.inc/jp/model-cr2)
 - [WHILL Powered Mobility Platform](https://whill-mrp.notion.site/WHILL-f975baf4015e4eebbb243a7d331efb0a)
  <br>(Wheeled Robot Base, Electrical System Kit, Omni-Platform, and WHILL Model CR2)
 
+
 ## Communication Specifications
+
 - Main Part : [WHILL_Control_System_Protocol_Specification.pdf](https://github.com/WHILL/whill_control_system_protocol_specification/blob/master/WHILL_Control_System_Protocol_Specification.pdf)
 
 - Appendix : [Differences between Model CR and Model CR2](https://github.com/WHILL/whill_control_system_protocol_specification/blob/master/WHILL_Control_System_Protocol_Specification_Appendix.pdf)
 
+
 ## Libraries
-- python : [pywhill](https://github.com/WHILL/pywhill)
 
-- arduino : [whill-sdk-arduino](https://github.com/WHILL/whill-sdk-arduino)
+- Python : [pywhill](https://github.com/WHILL/pywhill)
 
-- ROS1 : [ros_whill](https://github.com/WHILL/ros_whill)
+- Arduino : [whill-sdk-arduino](https://github.com/WHILL/whill-sdk-arduino)
+
+- ROS1 (melodic) : [ros_whill](https://github.com/WHILL/ros_whill)
+
 
 ## Tools
+
  - [cr_connection_checker](https://github.com/whill-labs/cr_connection_checker)
    - Model CRシリーズの接続確認用のツール
 
