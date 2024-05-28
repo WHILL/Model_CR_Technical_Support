@@ -57,6 +57,8 @@ Issuesへのお問い合わせは、Model CRシリーズのハードウェアに
 
 - ROS1 (melodic) : [ros_whill](https://github.com/WHILL/ros_whill)
 
+- ROS2 (humble) : [ros2_whill](https://github.com/whill-labs/ros2_whill)
+
 
 ## Tools
 
