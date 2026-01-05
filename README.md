@@ -66,8 +66,17 @@ Issuesへのお問い合わせは、Model CRシリーズのハードウェアに
 
 ## Tools
 
+- [WHILL Serial Communication Test Tool](https://whill.github.io/Model_CR_Technical_Support/whill_serial_communication_test_tool.html)
+  - ブラウザから、Model CRシリーズとのシリアル通信をテストできるツール
+    - １．PC（Chrome または Edgeが使える）とModel CRシリーズをUSB-R232C変換ケーブルを介して接続する。
+    - ２．[Test Tool](https://whill.github.io/Model_CR_Technical_Support/whill_serial_communication_test_tool.html) にアクセスする（ダウンロードしておくと、オフラインでも使用可）
+    - ３．「Connect」ボタンを押下し、ダイアログから正しいポートを選択する。
+    - ４．各タブにあるボタンを使って、Model CRシリーズを制御できる。
+      - Basic Functions タブ：電源ON/OFF、ジョイスティック操作
+      - Speed Profile タブ：スピードプロファイル確認/設定
+      - Custom Command タブ：任意コマンドの送信
+    - ５．終了時は、右上の「Disconnect」を押下する。
+
+
  - [cr_connection_checker](https://github.com/whill-labs/cr_connection_checker)
    - Model CRシリーズの接続確認用のツール
-
-
-
