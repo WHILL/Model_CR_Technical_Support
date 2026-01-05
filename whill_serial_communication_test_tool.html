@@ -1,0 +1,3904 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="WHILLシリアル通信テストツール - Web Serial APIを使用したシリアル通信テストツール" />
+  <meta name="author" content="WHILL CO.,LTD." />
+  <title>WHILL Serial Communication Test Tool</title>
+  <style>
+    h1 {
+      font-size: 20pt;
+      background-color: #4F4F4F;
+      color: #FFFFFF;
+      font-weight: normal;
+      padding: 10px;
+    }
+
+    h2 {
+      font-size: 14pt;
+    }
+
+    body {
+      font-size: 12pt;
+      color: #444444;
+      font-family: Arial, sans-serif;
+    }
+
+    fieldset {
+      font-size: 12pt;
+      line-height: 1.5em;
+      padding: 20px;
+      margin: 10px 0;
+    }
+
+    button {
+      font-size: 12pt;
+      padding: 10px 20px;
+      margin: 5px;
+      border-radius: 5px;
+      border: none;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* Fixed Header Section Styles */
+    .fixed-header {
+      position: sticky;
+      top: 0;
+      background-color: white;
+      z-index: 100;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Tab Function Styles */
+    .tab-container {
+      margin: 20px 0;
+    }
+
+    .tab-buttons {
+      display: flex;
+      border-bottom: 2px solid #0075B8;
+      margin-bottom: 20px;
+    }
+
+    .tab-button {
+      background-color: #f8f9fa;
+      color: #0075B8;
+      border: 2px solid #0075B8;
+      border-bottom: none;
+      padding: 12px 24px;
+      margin-right: 5px;
+      border-radius: 8px 8px 0 0;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.3s ease;
+    }
+
+    .tab-button:hover {
+      background-color: #e3f2fd;
+    }
+
+    .tab-button.active {
+      background-color: #0075B8;
+      color: white;
+    }
+
+    .tab-content {
+      display: none;
+      margin-top: 20px;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    /* Power Button Styles */
+    .power-button {
+      font-weight: bold;
+      font-size: 14pt;
+      padding: 15px 30px;
+      margin: 10px;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+    }
+
+    .power-on {
+      background-color: #0075B8;
+      color: white;
+      box-shadow: 0 4px 8px rgba(0, 117, 184, 0.3);
+    }
+
+    .power-on:hover:not(:disabled) {
+      background-color: #005a8f;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(0, 117, 184, 0.4);
+    }
+
+    .power-off {
+      background-color: #666666;
+      color: white;
+      box-shadow: 0 4px 8px rgba(102, 102, 102, 0.3);
+    }
+
+    .power-off:hover:not(:disabled) {
+      background-color: #4d4d4d;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(102, 102, 102, 0.4);
+    }
+
+    /* Device Information Retrieval Button Styles */
+    .version-button {
+      background-color: #0075B8;
+      color: white;
+      box-shadow: 0 2px 4px rgba(0, 117, 184, 0.3);
+      width: 80px;
+      padding: 8px 12px;
+      font-size: 11pt;
+    }
+
+    .version-button:hover:not(:disabled) {
+      background-color: #005a8f;
+      transform: translateY(-1px);
+      box-shadow: 0 3px 6px rgba(0, 117, 184, 0.4);
+    }
+
+    /* Connection Button Styles */
+    .connect-button {
+      background-color: #0075B8;
+      color: white;
+      box-shadow: 0 4px 8px rgba(0, 117, 184, 0.3);
+    }
+
+    .connect-button:hover:not(:disabled) {
+      background-color: #005a8f;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(0, 117, 184, 0.4);
+    }
+
+    /* Clear Button Styles */
+    .clear-button {
+      background-color: #666666;
+      color: white;
+      box-shadow: 0 4px 8px rgba(102, 102, 102, 0.3);
+    }
+
+    .clear-button:hover:not(:disabled) {
+      background-color: #4d4d4d;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(102, 102, 102, 0.4);
+    }
+
+    #data-display {
+      width: 100%;
+      height: 300px;
+      border: 1px solid #ccc;
+      padding: 10px;
+      overflow-y: auto;
+      background-color: #f9f9f9;
+      font-family: monospace;
+      white-space: pre-wrap;
+      border-radius: 5px;
+    }
+
+    #joystick-data-display {
+      width: 100%;
+      height: 300px;
+      border: 1px solid #ccc;
+      padding: 10px;
+      overflow-y: auto;
+      background-color: #f9f9f9;
+      font-family: monospace;
+      white-space: pre-wrap;
+      border-radius: 5px;
+    }
+
+    #speed-profile-data-display {
+      width: 100%;
+      height: 300px;
+      border: 1px solid #ccc;
+      padding: 10px;
+      overflow-y: auto;
+      background-color: #f9f9f9;
+      font-family: monospace;
+      white-space: pre-wrap;
+      border-radius: 5px;
+    }
+
+    /* Device Information Display Area */
+    #device-info {
+      background-color: #f8f9fa;
+      border: 2px solid #0075B8;
+      padding: 20px;
+      border-radius: 10px;
+      margin: 10px 0;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .info-row {
+      display: flex;
+      align-items: center;
+      margin: 10px 0;
+      padding: 10px;
+      background-color: white;
+      border-radius: 5px;
+      border: 1px solid #e9ecef;
+    }
+
+    .info-label {
+      font-weight: bold;
+      font-size: 14pt;
+      color: #0075B8;
+      width: 120px;
+      flex-shrink: 0;
+    }
+
+    .info-value {
+      font-size: 16pt;
+      font-weight: bold;
+      padding: 5px 15px;
+      border-radius: 20px;
+      background-color: #f8f9fa;
+      border: 1px solid #dee2e6;
+      min-width: 120px;
+      text-align: center;
+    }
+
+    .status-unknown {
+      background-color: #f8f9fa;
+      color: #666666;
+    }
+
+    .status-cr {
+      background-color: #fff3cd;
+      color: #856404;
+      border-color: #ffeaa7;
+    }
+
+    .status-cr2 {
+      background-color: #d4edda;
+      color: #155724;
+      border-color: #c3e6cb;
+    }
+
+    /* Virtual Joystick Styles */
+    .joystick-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 20px 0;
+      gap: 40px;
+    }
+
+    /* Speed Profile Styles */
+    .speed-profile-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 8px;
+      margin: 20px 0;
+    }
+
+    .speed-profile-card {
+      border: 2px solid #0075B8;
+      border-radius: 8px;
+      padding: 8px;
+      background-color: #f8f9fa;
+    }
+
+    .speed-profile-header {
+      background-color: #0075B8;
+      color: white;
+      padding: 6px;
+      margin: -8px -8px 8px -8px;
+      border-radius: 6px 6px 0 0;
+      text-align: center;
+      font-weight: bold;
+      font-size: 12pt;
+    }
+
+    .speed-profile-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 3px 0;
+      border-bottom: 1px solid #dee2e6;
+    }
+
+    .speed-profile-item:last-child {
+      border-bottom: none;
+    }
+
+    .speed-profile-label {
+      font-weight: bold;
+      color: #0075B8;
+      min-width: 40px;
+      font-size: 12pt;
+    }
+
+    .speed-profile-value {
+      background-color: white;
+      padding: 2px 4px;
+      border-radius: 3px;
+      border: 1px solid #dee2e6;
+      font-family: monospace;
+      font-weight: bold;
+      min-width: 35px;
+      text-align: center;
+      font-size: 12pt;
+    }
+
+    .speed-profile-input {
+      background-color: white;
+      padding: 2px 4px;
+      border-radius: 3px;
+      border: 1px solid #dee2e6;
+      font-family: monospace;
+      font-weight: bold;
+      min-width: 35px;
+      text-align: center;
+      font-size: 12pt;
+    }
+
+    .speed-profile-input:focus {
+      outline: none;
+      border-color: #0075B8;
+      box-shadow: 0 0 5px rgba(0, 117, 184, 0.3);
+    }
+
+    .speed-profile-status {
+      text-align: left;
+      padding: 10px;
+      font-weight: bold;
+      color: #666666;
+    }
+
+    .speed-profile-loading {
+      color: #0075B8;
+    }
+
+    .speed-profile-success {
+      color: #28a745;
+    }
+
+    .speed-profile-error {
+      color: #dc3545;
+    }
+
+    /* Custom Command Styles */
+    .custom-command-input {
+      background-color: white;
+      padding: 8px 12px;
+      border-radius: 5px;
+      border: 2px solid #0075B8;
+      font-family: monospace;
+      font-weight: bold;
+      text-align: center;
+      font-size: 12pt;
+    }
+
+    .custom-command-input:focus {
+      outline: none;
+      border-color: #005a8f;
+      box-shadow: 0 0 5px rgba(0, 117, 184, 0.3);
+    }
+
+    .custom-command-button {
+      background-color: #0075B8;
+      color: white;
+      box-shadow: 0 4px 8px rgba(0, 117, 184, 0.3);
+      padding: 12px 20px;
+      font-size: 12pt;
+      font-weight: bold;
+    }
+
+    .custom-command-button:hover:not(:disabled) {
+      background-color: #005a8f;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(0, 117, 184, 0.4);
+    }
+
+    .continuous-button {
+      background: linear-gradient(135deg, #28a745, #20c997);
+      border: 2px solid #28a745;
+      color: white;
+      font-weight: bold;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .continuous-button:hover:not(:disabled) {
+      background: linear-gradient(135deg, #218838, #1ea085);
+      border-color: #218838;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(40, 167, 69, 0.4);
+    }
+
+    .continuous-button.sending {
+      background: linear-gradient(135deg, #dc3545, #fd7e14);
+      border-color: #dc3545;
+      animation: pulse 0.5s infinite alternate;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 1; }
+      100% { opacity: 0.7; }
+    }
+
+    .preview-command-button {
+      background-color: #28a745;
+      color: white;
+      box-shadow: 0 2px 4px rgba(40, 167, 69, 0.3);
+      padding: 12px 20px;
+      font-size: 12pt;
+      font-weight: bold;
+    }
+
+    .preview-command-button:hover:not(:disabled) {
+      background-color: #218838;
+      transform: translateY(-1px);
+      box-shadow: 0 3px 6px rgba(40, 167, 69, 0.4);
+    }
+
+    .command-preview {
+      margin-top: 15px;
+      padding: 15px;
+      background-color: #f8f9fa;
+      border: 2px solid #0075B8;
+      border-radius: 8px;
+    }
+
+    #custom-command-data-display {
+      width: 100%;
+      height: 300px;
+      border: 1px solid #ccc;
+      padding: 10px;
+      overflow-y: auto;
+      background-color: #f9f9f9;
+      font-family: monospace;
+      white-space: pre-wrap;
+      border-radius: 5px;
+    }
+
+    /* Setting Button Styles */
+    .set-speed-profile-button {
+      background-color: #28a745;
+      color: white;
+      box-shadow: 0 2px 4px rgba(40, 167, 69, 0.3);
+      width: 80px;
+      padding: 8px 12px;
+      font-size: 11pt;
+    }
+
+    .set-speed-profile-button:hover:not(:disabled) {
+      background-color: #218838;
+      transform: translateY(-1px);
+      box-shadow: 0 3px 6px rgba(40, 167, 69, 0.4);
+    }
+
+    .set-speed-profile-button:disabled {
+      background-color: #6c757d;
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* Cancel Button Styles */
+    .cancel-speed-profile-button {
+      background-color: #dc3545;
+      color: white;
+      box-shadow: 0 2px 4px rgba(220, 53, 69, 0.3);
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 11pt;
+    }
+
+    .cancel-speed-profile-button:hover:not(:disabled) {
+      background-color: #c82333;
+      transform: translateY(-1px);
+      box-shadow: 0 3px 6px rgba(220, 53, 69, 0.4);
+    }
+
+    .cancel-speed-profile-button:disabled {
+      background-color: #6c757d;
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .joystick {
+      position: relative;
+      width: 150px;
+      height: 150px;
+      border: 3px solid #0075B8;
+      border-radius: 50%;
+      background-color: #f8f9fa;
+      cursor: pointer;
+      user-select: none;
+      touch-action: none;
+    }
+
+    .joystick-knob {
+      position: absolute;
+      width: 40px;
+      height: 40px;
+      background-color: #0075B8;
+      border-radius: 50%;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      cursor: grab;
+      transition: all 0.1s ease;
+      box-shadow: 0 2px 8px rgba(0, 117, 184, 0.3);
+    }
+
+    .joystick-knob:active {
+      cursor: grabbing;
+      transform: translate(-50%, -50%) scale(1.1);
+    }
+
+    .joystick-center {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      background-color: #666666;
+      border-radius: 50%;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+
+    .joystick-values {
+      text-align: center;
+      margin-top: 10px;
+      font-weight: bold;
+      color: #0075B8;
+    }
+
+    .joystick-label {
+      text-align: center;
+      font-weight: bold;
+      color: #0075B8;
+      margin-bottom: 10px;
+      font-size: 14pt;
+    }
+
+    footer {
+      font-size: 8pt;
+      margin-top: 30px;
+    }
+
+    /* Pre-connection Display Area Styles */
+    .pre-connection-area {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 400px;
+      background-color: #f8f9fa;
+      border-radius: 10px;
+      margin: 20px 0;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .connection-welcome {
+      text-align: center;
+      padding: 40px;
+      background-color: white;
+      border-radius: 15px;
+      box-shadow: 0 6px 20px rgba(0, 117, 184, 0.15);
+      border: 2px solid #0075B8;
+    }
+
+    .connection-welcome h2 {
+      color: #0075B8;
+      margin-bottom: 20px;
+      font-size: 24pt;
+      font-weight: bold;
+    }
+
+    .connection-welcome p {
+      color: #666666;
+      margin-bottom: 30px;
+      font-size: 14pt;
+      line-height: 1.6;
+    }
+
+    .connection-welcome .connect-button {
+      font-size: 16pt;
+      padding: 20px 40px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #0075B8, #005a8f);
+      box-shadow: 0 8px 25px rgba(0, 117, 184, 0.3);
+      transition: all 0.3s ease;
+    }
+
+    .connection-welcome .connect-button:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 35px rgba(0, 117, 184, 0.4);
+      background: linear-gradient(135deg, #005a8f, #004a7a);
+    }
+
+    /* Post-connection Display Area Styles */
+    .post-connection-area {
+      animation: fadeIn 0.5s ease-in-out;
+      position: relative;
+    }
+
+    /* Disconnect Button Styles */
+    .disconnect-button {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background-color: #dc3545;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 5px;
+      font-size: 12pt;
+      cursor: pointer;
+      box-shadow: 0 2px 4px rgba(220, 53, 69, 0.3);
+      transition: all 0.3s ease;
+      z-index: 1000;
+    }
+
+    .disconnect-button:hover {
+      background-color: #c82333;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(220, 53, 69, 0.4);
+    }
+
+    /* Device Information Display Area (Top Right) */
+    .device-info-display {
+      position: absolute;
+      top: 2px;
+      right: 160px;
+      background-color: rgba(255, 255, 255, 0.95);
+      border-radius: 5px;
+      padding: 8px 12px;
+      font-size: 10pt;
+      color: #0075B8;
+      font-weight: bold;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      z-index: 999;
+      min-width: 120px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .device-info-display:hover {
+      background-color: rgba(0, 117, 184, 0.1);
+      transform: translateY(-1px);
+      box-shadow: 0 3px 6px rgba(0, 117, 184, 0.3);
+    }
+
+    .device-info-display:active {
+      transform: translateY(0);
+      box-shadow: 0 1px 2px rgba(0, 117, 184, 0.3);
+    }
+
+    .device-info-display .model {
+      margin-bottom: 2px;
+    }
+
+    .device-info-display .version {
+      font-size: 10pt;
+      opacity: 0.8;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Fixed Header Section -->
+  <div class="fixed-header">
+    <h1><span>WHILL Serial Communication Test Tool Ver1.00</span></h1>
+
+    <!-- Pre-connection Display Area -->
+    <div id="pre-connection-area" class="pre-connection-area">
+      <div class="connection-welcome">
+        <h2>Please connect to WHILL device</h2>
+        <p>Click the connect button to start communication with the WHILL device.</p>
+        <button id="initial-connect-button" type="button" class="connect-button">Connect</button>
+      </div>
+    </div>
+
+    <!-- Post-connection Display Area -->
+    <div id="post-connection-area" class="post-connection-area" style="display: none;">
+      <!-- Disconnect Button -->
+      <button id="disconnect-button" type="button" class="disconnect-button">Disconnect</button>
+      
+      <!-- Device Information Display Area (Top Right) -->
+      <div id="device-info-display" class="device-info-display">
+        <div class="model">Model: Unknown</div>
+        <div class="version">Version: Unknown</div>
+      </div>
+      
+      <!-- Tab Container -->
+      <div class="tab-container">
+        <div class="tab-buttons">
+          <button class="tab-button active" onclick="switchTab('main')">Basic Functions</button>
+          <button class="tab-button" onclick="switchTab('speed-profile')">Speed Profile</button>
+          <button class="tab-button" onclick="switchTab('custom-command')">Custom Command</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+    <!-- Basic Functions Tab -->
+    <div id="main-tab" class="tab-content active">
+      <fieldset>
+        <legend>Power Control</legend>
+        <button id="power-on-button" type="button" class="power-button power-on">Power ON</button>
+        <button id="power-off-button" type="button" class="power-button power-off">Power OFF</button>
+      </fieldset>
+
+      <fieldset>
+        <legend>Basic Functions</legend>
+        <div style="display: flex; gap: 20px;">
+          <!-- Left Side: Virtual Joystick -->
+          <div style="flex: 0 0 300px;">
+            <div style="text-align: center; margin-bottom: 15px; padding: 10px; background-color: #fff3cd; border: 1px solid #ffeaa7; border-radius: 5px; color: #856404; font-weight: bold;">
+              ⚠️ Please be careful of your surroundings when operating
+            </div>
+            <div class="joystick-container">
+              <div>
+                <div class="joystick-label">Joystick</div>
+                <div id="joystick" class="joystick">
+                  <div class="joystick-center"></div>
+                  <div id="knob" class="joystick-knob"></div>
+                </div>
+                <div id="joystick-values" class="joystick-values">X: 0, Y: 0</div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Right Side: Motor Status Display -->
+          <div style="flex: 0 0 400px;">
+            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+              <button id="main-start-sending-data-button" type="button" class="custom-command-button" style="font-size: 12pt; padding: 8px 16px;">Start Status Retrieval</button>
+              <button id="main-stop-sending-data-button" type="button" class="custom-command-button" style="font-size: 12pt; padding: 8px 16px;">Stop Status Retrieval</button>
+            </div>
+            <div id="main-motor-status-container" style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <!-- Battery Information -->
+              <div class="motor-status-card" style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); border: 2px solid #2196f3; border-radius: 8px; padding: 8px; flex: 1; min-width: 120px;">
+                <div class="motor-status-header" style="font-weight: bold; color: #1976d2; margin-bottom: 6px; text-align: center; font-size: 11pt;">🔋 Battery</div>
+                <div class="motor-status-item" style="margin-bottom: 3px; display: flex; justify-content: space-between;">
+                  <span class="motor-status-label" style="font-weight: bold; color: #1976d2; font-size: 9pt;">Level:</span>
+                  <span id="main-battery-level" class="motor-status-value" style="color: #000; font-weight: bold; font-size: 9pt;">-</span>
+                </div>
+                <div class="motor-status-item" style="margin-bottom: 3px; display: flex; justify-content: space-between;">
+                  <span class="motor-status-label" style="font-weight: bold; color: #1976d2; font-size: 9pt;">Current:</span>
+                  <span id="main-battery-current" class="motor-status-value" style="color: #000; font-weight: bold; font-size: 9pt;">-</span>
+                </div>
+                <div class="motor-status-item" style="margin-bottom: 3px; display: flex; justify-content: space-between;">
+                  <span class="motor-status-label" style="font-weight: bold; color: #1976d2; font-size: 9pt;">Low Level:</span>
+                  <span id="main-battery-status" class="motor-status-value" style="color: #000; font-weight: bold; font-size: 9pt;">-</span>
+                </div>
+                <div class="motor-status-item" style="display: flex; justify-content: space-between;">
+                  <span class="motor-status-label" style="font-weight: bold; color: #1976d2; font-size: 9pt;">Low Buzzer:</span>
+                  <span id="main-buzzer-status" class="motor-status-value" style="color: #000; font-weight: bold; font-size: 9pt;">-</span>
+                </div>
+              </div>
+
+              <!-- System Status Information -->
+              <div class="motor-status-card" style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); border: 2px solid #2196f3; border-radius: 8px; padding: 8px; flex: 1; min-width: 120px;">
+                <div class="motor-status-header" style="font-weight: bold; color: #1976d2; margin-bottom: 6px; text-align: center; font-size: 11pt;">⚙️ System</div>
+                <div class="motor-status-item" style="margin-bottom: 3px; display: flex; justify-content: space-between;">
+                  <span class="motor-status-label" style="font-weight: bold; color: #1976d2; font-size: 9pt;">Power:</span>
+                  <span id="main-power-status" class="motor-status-value" style="color: #000; font-weight: bold; font-size: 9pt;">-</span>
+                </div>
+                <div class="motor-status-item" style="margin-bottom: 3px; display: flex; justify-content: space-between;">
+                  <span class="motor-status-label" style="font-weight: bold; color: #1976d2; font-size: 9pt;">Speed Mode:</span>
+                  <span id="main-speed-mode" class="motor-status-value" style="color: #000; font-weight: bold; font-size: 9pt;">-</span>
+                </div>
+                <div class="motor-status-item" style="margin-bottom: 3px; display: flex; justify-content: space-between;">
+                  <span class="motor-status-label" style="font-weight: bold; color: #1976d2; font-size: 9pt;">Error:</span>
+                  <span id="main-error-code" class="motor-status-value" style="color: #000; font-weight: bold; font-size: 9pt;">-</span>
+                </div>
+                <div class="motor-status-item" style="display: flex; justify-content: space-between;">
+                  <span class="motor-status-label" style="font-weight: bold; color: #1976d2; font-size: 9pt;">Counter:</span>
+                  <span id="main-angle-counter" class="motor-status-value" style="color: #000; font-weight: bold; font-size: 9pt;">-</span>
+                </div>
+              </div>
+
+              <!-- Motor Angle Information -->
+              <div class="motor-status-card" style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); border: 2px solid #2196f3; border-radius: 8px; padding: 8px; flex: 1; min-width: 120px;">
+                <div class="motor-status-header" style="font-weight: bold; color: #1976d2; margin-bottom: 6px; text-align: center; font-size: 11pt;">🔄 Angle</div>
+                <div class="motor-status-item" style="margin-bottom: 3px; display: flex; justify-content: space-between;">
+                  <span class="motor-status-label" style="font-weight: bold; color: #1976d2; font-size: 9pt;">Right:</span>
+                  <span id="main-motor-angle-right" class="motor-status-value" style="color: #000; font-weight: bold; font-size: 9pt;">-</span>
+                </div>
+                <div class="motor-status-item" style="display: flex; justify-content: space-between;">
+                  <span class="motor-status-label" style="font-weight: bold; color: #1976d2; font-size: 9pt;">Left:</span>
+                  <span id="main-motor-angle-left" class="motor-status-value" style="color: #000; font-weight: bold; font-size: 9pt;">-</span>
+                </div>
+              </div>
+
+              <!-- Motor Velocity Information -->
+              <div class="motor-status-card" style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); border: 2px solid #2196f3; border-radius: 8px; padding: 8px; flex: 1; min-width: 120px;">
+                <div class="motor-status-header" style="font-weight: bold; color: #1976d2; margin-bottom: 6px; text-align: center; font-size: 11pt;">⚡ Speed</div>
+                <div class="motor-status-item" style="margin-bottom: 3px; display: flex; justify-content: space-between;">
+                  <span class="motor-status-label" style="font-weight: bold; color: #1976d2; font-size: 9pt;">Right:</span>
+                  <span id="main-motor-speed-right" class="motor-status-value" style="color: #000; font-weight: bold; font-size: 9pt;">-</span>
+                </div>
+                <div class="motor-status-item" style="display: flex; justify-content: space-between;">
+                  <span class="motor-status-label" style="font-weight: bold; color: #1976d2; font-size: 9pt;">Left:</span>
+                  <span id="main-motor-speed-left" class="motor-status-value" style="color: #000; font-weight: bold; font-size: 9pt;">-</span>
+                </div>
+              </div>
+            </div>
+            <div style="text-align: center; margin-top: 10px;">
+              <button id="main-clear-motor-status-button" type="button" class="clear-button" style="font-size: 10pt; padding: 5px 10px;">Clear Motor Status</button>
+            </div>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Send/Receive Data Display</legend>
+        <div id="data-display"></div>
+        <button id="clear-button" type="button" class="clear-button">Clear</button>
+      </fieldset>
+    </div>
+
+
+    <!-- Speed Profile Tab -->
+    <div id="speed-profile-tab" class="tab-content">
+      <fieldset>
+        <legend>Get/Set All Speed Profiles</legend>
+        <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+          <button id="get-speed-profiles-button" type="button" class="version-button">Get</button>
+          <button id="set-speed-profiles-button" type="button" class="set-speed-profile-button">Set</button>
+          <button id="cancel-speed-profiles-button" type="button" class="cancel-speed-profile-button" style="display: none;">Cancel</button>
+        </div>
+        <div id="speed-profiles-status" class="speed-profile-status">Not Retrieved</div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Speed Profile List</legend>
+        <div id="speed-profiles-container" class="speed-profile-container">
+          <!-- Speed Profile 0 -->
+          <div class="speed-profile-card">
+            <div class="speed-profile-header">Speed Mode 0</div>
+            <div class="speed-profile-item">
+              <span class="speed-profile-label">F_M1:</span>
+              <input type="number" id="f-m1-0" class="speed-profile-input" value="0" min="0" max="255">
+            </div>
+            <div class="speed-profile-item">
+              <span class="speed-profile-label">F_A1:</span>
+              <input type="number" id="f-a1-0" class="speed-profile-input" value="0" min="0" max="255">
+            </div>
+            <div class="speed-profile-item">
+              <span class="speed-profile-label">F_D1:</span>
+              <input type="number" id="f-d1-0" class="speed-profile-input" value="0" min="0" max="255">
+            </div>
+            <div class="speed-profile-item">
+              <span class="speed-profile-label">R_M1:</span>
+              <input type="number" id="r-m1-0" class="speed-profile-input" value="0" min="0" max="255">
+            </div>
+            <div class="speed-profile-item">
+              <span class="speed-profile-label">R_A1:</span>
+              <input type="number" id="r-a1-0" class="speed-profile-input" value="0" min="0" max="255">
+            </div>
+            <div class="speed-profile-item">
+              <span class="speed-profile-label">R_D1:</span>
+              <input type="number" id="r-d1-0" class="speed-profile-input" value="0" min="0" max="255">
+            </div>
+            <div class="speed-profile-item">
+              <span class="speed-profile-label">T_M1:</span>
+              <input type="number" id="t-m1-0" class="speed-profile-input" value="0" min="0" max="255">
+            </div>
+            <div class="speed-profile-item">
+              <span class="speed-profile-label">T_A1:</span>
+              <input type="number" id="t-a1-0" class="speed-profile-input" value="0" min="0" max="255">
+            </div>
+            <div class="speed-profile-item">
+              <span class="speed-profile-label">T_D1:</span>
+              <input type="number" id="t-d1-0" class="speed-profile-input" value="0" min="0" max="255">
+            </div>
+          </div>
+
+          <!-- Speed Profile 1 -->
+          <div class="speed-profile-card">
+            <div class="speed-profile-header">Speed Mode 1</div>
+            <div class="speed-profile-item">
+              <span class="speed-profile-label">F_M1:</span>
+              <input type="number" id="f-m1-1" class="speed-profile-input" value="0" min="0" max="255">
+            </div>
+            <div class="speed-profile-item">
+              <span class="speed-profile-label">F_A1:</span>
+              <input type="number" id="f-a1-1" class="speed-profile-input" value="0" min="0" max="255">
+            </div>
+            <div class="speed-profile-item">
+              <span class="speed-profile-label">F_D1:</span>
+              <input type="number" id="f-d1-1" class="speed-profile-input" value="0" min="0" max="255">
+            </div>
+            <div class="speed-profile-item">
+              <span class="speed-profile-label">R_M1:</span>
+              <input type="number" id="r-m1-1" class="speed-profile-input" value="0" min="0" max="255">
+            </div>
+            <div class="speed-profile-item">
+              <span class="speed-profile-label">R_A1:</span>
+              <input type="number" id="r-a1-1" class="speed-profile-input" value="0" min="0" max="255">
+            </div>
+            <div class="speed-profile-item">
+              <span class="speed-profile-label">R_D1:</span>
+              <input type="number" id="r-d1-1" class="speed-profile-input" value="0" min="0" max="255">
+            </div>
+            <div class="speed-profile-item">
+              <span class="speed-profile-label">T_M1:</span>
+              <input type="number" id="t-m1-1" class="speed-profile-input" value="0" min="0" max="255">
+            </div>
+            <div class="speed-profile-item">
+              <span class="speed-profile-label">T_A1:</span>
+              <input type="number" id="t-a1-1" class="speed-profile-input" value="0" min="0" max="255">
+            </div>
+            <div class="speed-profile-item">
+              <span class="speed-profile-label">T_D1:</span>
+              <input type="number" id="t-d1-1" class="speed-profile-input" value="0" min="0" max="255">
+            </div>
+          </div>
+
+          <!-- Speed Profile 2 -->
+          <div class="speed-profile-card">
+            <div class="speed-profile-header">Speed Mode 2</div>
+            <div class="speed-profile-item">
+              <span class="speed-profile-label">F_M1:</span>
+              <input type="number" id="f-m1-2" class="speed-profile-input" value="0" min="0" max="255">
+            </div>
+            <div class="speed-profile-item">
+              <span class="speed-profile-label">F_A1:</span>
+              <input type="number" id="f-a1-2" class="speed-profile-input" value="0" min="0" max="255">
+            </div>
+            <div class="speed-profile-item">
+              <span class="speed-profile-label">F_D1:</span>
+              <input type="number" id="f-d1-2" class="speed-profile-input" value="0" min="0" max="255">
+            </div>
+            <div class="speed-profile-item">
+              <span class="speed-profile-label">R_M1:</span>
+              <input type="number" id="r-m1-2" class="speed-profile-input" value="0" min="0" max="255">
+            </div>
+            <div class="speed-profile-item">
+              <span class="speed-profile-label">R_A1:</span>
+              <input type="number" id="r-a1-2" class="speed-profile-input" value="0" min="0" max="255">
+            </div>
+            <div class="speed-profile-item">
+              <span class="speed-profile-label">R_D1:</span>
+              <input type="number" id="r-d1-2" class="speed-profile-input" value="0" min="0" max="255">
+            </div>
+            <div class="speed-profile-item">
+              <span class="speed-profile-label">T_M1:</span>
+              <input type="number" id="t-m1-2" class="speed-profile-input" value="0" min="0" max="255">
+            </div>
+            <div class="speed-profile-item">
+              <span class="speed-profile-label">T_A1:</span>
+              <input type="number" id="t-a1-2" class="speed-profile-input" value="0" min="0" max="255">
+            </div>
+            <div class="speed-profile-item">
+              <span class="speed-profile-label">T_D1:</span>
+              <input type="number" id="t-d1-2" class="speed-profile-input" value="0" min="0" max="255">
+            </div>
+          </div>
+
+          <!-- Speed Profile 3 -->
+          <div class="speed-profile-card">
+            <div class="speed-profile-header">Speed Mode 3</div>
+            <div class="speed-profile-item">
+              <span class="speed-profile-label">F_M1:</span>
+              <input type="number" id="f-m1-3" class="speed-profile-input" value="0" min="0" max="255">
+            </div>
+            <div class="speed-profile-item">
+              <span class="speed-profile-label">F_A1:</span>
+              <input type="number" id="f-a1-3" class="speed-profile-input" value="0" min="0" max="255">
+            </div>
+            <div class="speed-profile-item">
+              <span class="speed-profile-label">F_D1:</span>
+              <input type="number" id="f-d1-3" class="speed-profile-input" value="0" min="0" max="255">
+            </div>
+            <div class="speed-profile-item">
+              <span class="speed-profile-label">R_M1:</span>
+              <input type="number" id="r-m1-3" class="speed-profile-input" value="0" min="0" max="255">
+            </div>
+            <div class="speed-profile-item">
+              <span class="speed-profile-label">R_A1:</span>
+              <input type="number" id="r-a1-3" class="speed-profile-input" value="0" min="0" max="255">
+            </div>
+            <div class="speed-profile-item">
+              <span class="speed-profile-label">R_D1:</span>
+              <input type="number" id="r-d1-3" class="speed-profile-input" value="0" min="0" max="255">
+            </div>
+            <div class="speed-profile-item">
+              <span class="speed-profile-label">T_M1:</span>
+              <input type="number" id="t-m1-3" class="speed-profile-input" value="0" min="0" max="255">
+            </div>
+            <div class="speed-profile-item">
+              <span class="speed-profile-label">T_A1:</span>
+              <input type="number" id="t-a1-3" class="speed-profile-input" value="0" min="0" max="255">
+            </div>
+            <div class="speed-profile-item">
+              <span class="speed-profile-label">T_D1:</span>
+              <input type="number" id="t-d1-3" class="speed-profile-input" value="0" min="0" max="255">
+            </div>
+          </div>
+
+          <!-- Speed Profile 4 -->
+          <div class="speed-profile-card">
+            <div class="speed-profile-header">Speed Mode 4</div>
+            <div class="speed-profile-item">
+              <span class="speed-profile-label">F_M1:</span>
+              <input type="number" id="f-m1-4" class="speed-profile-input" value="0" min="0" max="255">
+            </div>
+            <div class="speed-profile-item">
+              <span class="speed-profile-label">F_A1:</span>
+              <input type="number" id="f-a1-4" class="speed-profile-input" value="0" min="0" max="255">
+            </div>
+            <div class="speed-profile-item">
+              <span class="speed-profile-label">F_D1:</span>
+              <input type="number" id="f-d1-4" class="speed-profile-input" value="0" min="0" max="255">
+            </div>
+            <div class="speed-profile-item">
+              <span class="speed-profile-label">R_M1:</span>
+              <input type="number" id="r-m1-4" class="speed-profile-input" value="0" min="0" max="255">
+            </div>
+            <div class="speed-profile-item">
+              <span class="speed-profile-label">R_A1:</span>
+              <input type="number" id="r-a1-4" class="speed-profile-input" value="0" min="0" max="255">
+            </div>
+            <div class="speed-profile-item">
+              <span class="speed-profile-label">R_D1:</span>
+              <input type="number" id="r-d1-4" class="speed-profile-input" value="0" min="0" max="255">
+            </div>
+            <div class="speed-profile-item">
+              <span class="speed-profile-label">T_M1:</span>
+              <input type="number" id="t-m1-4" class="speed-profile-input" value="0" min="0" max="255">
+            </div>
+            <div class="speed-profile-item">
+              <span class="speed-profile-label">T_A1:</span>
+              <input type="number" id="t-a1-4" class="speed-profile-input" value="0" min="0" max="255">
+            </div>
+            <div class="speed-profile-item">
+              <span class="speed-profile-label">T_D1:</span>
+              <input type="number" id="t-d1-4" class="speed-profile-input" value="0" min="0" max="255">
+            </div>
+          </div>
+
+          <!-- Speed Profile 5 -->
+          <div class="speed-profile-card">
+            <div class="speed-profile-header">Speed Mode 5</div>
+            <div class="speed-profile-item">
+              <span class="speed-profile-label">F_M1:</span>
+              <input type="number" id="f-m1-5" class="speed-profile-input" value="0" min="0" max="255">
+            </div>
+            <div class="speed-profile-item">
+              <span class="speed-profile-label">F_A1:</span>
+              <input type="number" id="f-a1-5" class="speed-profile-input" value="0" min="0" max="255">
+            </div>
+            <div class="speed-profile-item">
+              <span class="speed-profile-label">F_D1:</span>
+              <input type="number" id="f-d1-5" class="speed-profile-input" value="0" min="0" max="255">
+            </div>
+            <div class="speed-profile-item">
+              <span class="speed-profile-label">R_M1:</span>
+              <input type="number" id="r-m1-5" class="speed-profile-input" value="0" min="0" max="255">
+            </div>
+            <div class="speed-profile-item">
+              <span class="speed-profile-label">R_A1:</span>
+              <input type="number" id="r-a1-5" class="speed-profile-input" value="0" min="0" max="255">
+            </div>
+            <div class="speed-profile-item">
+              <span class="speed-profile-label">R_D1:</span>
+              <input type="number" id="r-d1-5" class="speed-profile-input" value="0" min="0" max="255">
+            </div>
+            <div class="speed-profile-item">
+              <span class="speed-profile-label">T_M1:</span>
+              <input type="number" id="t-m1-5" class="speed-profile-input" value="0" min="0" max="255">
+            </div>
+            <div class="speed-profile-item">
+              <span class="speed-profile-label">T_A1:</span>
+              <input type="number" id="t-a1-5" class="speed-profile-input" value="0" min="0" max="255">
+            </div>
+            <div class="speed-profile-item">
+              <span class="speed-profile-label">T_D1:</span>
+              <input type="number" id="t-d1-5" class="speed-profile-input" value="0" min="0" max="255">
+            </div>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Send/Receive Data Display</legend>
+        <div id="speed-profile-data-display"></div>
+        <button id="speed-profile-clear-button" type="button" class="clear-button">Clear</button>
+      </fieldset>
+
+    </div>
+
+    <!-- Custom Command Tab -->
+    <div id="custom-command-tab" class="tab-content">
+      <fieldset>
+        <legend>START_SENDING_DATA Command</legend>
+        <div style="display: flex; gap: 20px;">
+          <!-- Left Side: START_SENDING_DATA Command -->
+          <div style="flex: 0 0 350px;">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+              <label for="data-set-input" style="font-weight: bold; color: #0075B8; min-width: 120px;">4th Byte (Data Set Number):</label>
+              <input type="number" id="data-set-input" class="custom-command-input" value="1" min="0" max="255" style="width: 80px; padding: 8px; border: 2px solid #0075B8; border-radius: 5px; text-align: center; font-weight: bold;">
+              <span style="color: #666666; font-size: 11pt;">(0-255)</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+              <label for="send-interval-input" style="font-weight: bold; color: #0075B8; min-width: 120px;">5-6th Byte (Send Interval [ms]):</label>
+              <input type="number" id="send-interval-input" class="custom-command-input" value="500" min="0" max="65535" style="width: 100px; padding: 8px; border: 2px solid #0075B8; border-radius: 5px; text-align: center; font-weight: bold;">
+              <span style="color: #666666; font-size: 11pt;">(0-65535)</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+              <label for="speed-profile-input" style="font-weight: bold; color: #0075B8;">7th Byte (Speed Profile Number):</label>
+              <input type="number" id="speed-profile-input" class="custom-command-input" value="0" min="0" max="255" style="width: 80px; padding: 8px; border: 2px solid #0075B8; border-radius: 5px; text-align: center; font-weight: bold;">
+              <span style="color: #666666; font-size: 11pt;">(0-255)</span>
+            </div>
+            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+              <button id="send-start-sending-data-button" type="button" class="custom-command-button">Send START_SENDING_DATA</button>
+            </div>
+            <div id="start-sending-data-preview" class="command-preview">
+              <div style="font-weight: bold; color: #0075B8; margin-bottom: 5px;">Command to Send:</div>
+              <div id="start-sending-data-hex-display" style="font-family: monospace; background-color: #f8f9fa; padding: 8px; border-radius: 5px; border: 1px solid #dee2e6;"></div>
+            </div>
+          </div>
+          
+          <!-- Right Side: Motor Status Display (for START_SENDING_DATA) -->
+          <div style="flex: 0 0 400px;">
+            <div id="motor-status-container-start-sending" style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <!-- Battery Information -->
+              <div class="motor-status-card" style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); border: 2px solid #2196f3; border-radius: 8px; padding: 8px; flex: 1; min-width: 120px;">
+                <div class="motor-status-header" style="font-weight: bold; color: #1976d2; margin-bottom: 6px; text-align: center; font-size: 11pt;">🔋 Battery</div>
+                <div class="motor-status-item" style="margin-bottom: 3px; display: flex; justify-content: space-between;">
+                  <span class="motor-status-label" style="font-weight: bold; color: #1976d2; font-size: 9pt;">Level:</span>
+                  <span id="battery-level-start-sending" class="motor-status-value" style="color: #000; font-weight: bold; font-size: 9pt;">-</span>
+                </div>
+                <div class="motor-status-item" style="margin-bottom: 3px; display: flex; justify-content: space-between;">
+                  <span class="motor-status-label" style="font-weight: bold; color: #1976d2; font-size: 9pt;">Current:</span>
+                  <span id="battery-current-start-sending" class="motor-status-value" style="color: #000; font-weight: bold; font-size: 9pt;">-</span>
+                </div>
+                <div class="motor-status-item" style="margin-bottom: 3px; display: flex; justify-content: space-between;">
+                  <span class="motor-status-label" style="font-weight: bold; color: #1976d2; font-size: 9pt;">Low Level:</span>
+                  <span id="battery-status-start-sending" class="motor-status-value" style="color: #000; font-weight: bold; font-size: 9pt;">-</span>
+                </div>
+                <div class="motor-status-item" style="display: flex; justify-content: space-between;">
+                  <span class="motor-status-label" style="font-weight: bold; color: #1976d2; font-size: 9pt;">Low Buzzer:</span>
+                  <span id="buzzer-status-start-sending" class="motor-status-value" style="color: #000; font-weight: bold; font-size: 9pt;">-</span>
+                </div>
+              </div>
+
+              <!-- System Status Information -->
+              <div class="motor-status-card" style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); border: 2px solid #2196f3; border-radius: 8px; padding: 8px; flex: 1; min-width: 120px;">
+                <div class="motor-status-header" style="font-weight: bold; color: #1976d2; margin-bottom: 6px; text-align: center; font-size: 11pt;">⚙️ System</div>
+                <div class="motor-status-item" style="margin-bottom: 3px; display: flex; justify-content: space-between;">
+                  <span class="motor-status-label" style="font-weight: bold; color: #1976d2; font-size: 9pt;">Power:</span>
+                  <span id="power-status-start-sending" class="motor-status-value" style="color: #000; font-weight: bold; font-size: 9pt;">-</span>
+                </div>
+                <div class="motor-status-item" style="margin-bottom: 3px; display: flex; justify-content: space-between;">
+                  <span class="motor-status-label" style="font-weight: bold; color: #1976d2; font-size: 9pt;">Display Speed:</span>
+                  <span id="speed-mode-start-sending" class="motor-status-value" style="color: #000; font-weight: bold; font-size: 9pt;">-</span>
+                </div>
+                <div class="motor-status-item" style="margin-bottom: 3px; display: flex; justify-content: space-between;">
+                  <span class="motor-status-label" style="font-weight: bold; color: #1976d2; font-size: 9pt;">Error:</span>
+                  <span id="error-code-start-sending" class="motor-status-value" style="color: #000; font-weight: bold; font-size: 9pt;">-</span>
+                </div>
+                <div class="motor-status-item" style="display: flex; justify-content: space-between;">
+                  <span class="motor-status-label" style="font-weight: bold; color: #1976d2; font-size: 9pt;">Counter:</span>
+                  <span id="angle-counter-start-sending" class="motor-status-value" style="color: #000; font-weight: bold; font-size: 9pt;">-</span>
+                </div>
+              </div>
+
+              <!-- Motor Angle Information -->
+              <div class="motor-status-card" style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); border: 2px solid #2196f3; border-radius: 8px; padding: 8px; flex: 1; min-width: 120px;">
+                <div class="motor-status-header" style="font-weight: bold; color: #1976d2; margin-bottom: 6px; text-align: center; font-size: 11pt;">🔄 Angle</div>
+                <div class="motor-status-item" style="margin-bottom: 3px; display: flex; justify-content: space-between;">
+                  <span class="motor-status-label" style="font-weight: bold; color: #1976d2; font-size: 9pt;">Right:</span>
+                  <span id="motor-angle-right-start-sending" class="motor-status-value" style="color: #000; font-weight: bold; font-size: 9pt;">-</span>
+                </div>
+                <div class="motor-status-item" style="display: flex; justify-content: space-between;">
+                  <span class="motor-status-label" style="font-weight: bold; color: #1976d2; font-size: 9pt;">Left:</span>
+                  <span id="motor-angle-left-start-sending" class="motor-status-value" style="color: #000; font-weight: bold; font-size: 9pt;">-</span>
+                </div>
+              </div>
+
+              <!-- Motor Velocity Information -->
+              <div class="motor-status-card" style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); border: 2px solid #2196f3; border-radius: 8px; padding: 8px; flex: 1; min-width: 120px;">
+                <div class="motor-status-header" style="font-weight: bold; color: #1976d2; margin-bottom: 6px; text-align: center; font-size: 11pt;">⚡ Speed</div>
+                <div class="motor-status-item" style="margin-bottom: 3px; display: flex; justify-content: space-between;">
+                  <span class="motor-status-label" style="font-weight: bold; color: #1976d2; font-size: 9pt;">Right:</span>
+                  <span id="motor-speed-right-start-sending" class="motor-status-value" style="color: #000; font-weight: bold; font-size: 9pt;">-</span>
+                </div>
+                <div class="motor-status-item" style="display: flex; justify-content: space-between;">
+                  <span class="motor-status-label" style="font-weight: bold; color: #1976d2; font-size: 9pt;">Left:</span>
+                  <span id="motor-speed-left-start-sending" class="motor-status-value" style="color: #000; font-weight: bold; font-size: 9pt;">-</span>
+                </div>
+              </div>
+
+              <!-- Joystick Information -->
+              <div class="motor-status-card" style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); border: 2px solid #2196f3; border-radius: 8px; padding: 8px; flex: 1; min-width: 120px;">
+                <div class="motor-status-header" style="font-weight: bold; color: #1976d2; margin-bottom: 6px; text-align: center; font-size: 11pt;">🎮 Joystick</div>
+                <div class="motor-status-item" style="margin-bottom: 3px; display: flex; justify-content: space-between;">
+                  <span class="motor-status-label" style="font-weight: bold; color: #1976d2; font-size: 9pt;">Forward/Backward:</span>
+                  <span id="joystick-forward-start-sending" class="motor-status-value" style="color: #000; font-weight: bold; font-size: 9pt;">-</span>
+                </div>
+                <div class="motor-status-item" style="display: flex; justify-content: space-between;">
+                  <span class="motor-status-label" style="font-weight: bold; color: #1976d2; font-size: 9pt;">Left/Right:</span>
+                  <span id="joystick-turn-start-sending" class="motor-status-value" style="color: #000; font-weight: bold; font-size: 9pt;">-</span>
+                </div>
+              </div>
+            </div>
+            <div style="text-align: center; margin-top: 10px;">
+              <button id="clear-motor-status-start-sending-button" type="button" class="clear-button" style="font-size: 10pt; padding: 5px 10px;">Clear Motor Status</button>
+            </div>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>STOP_SENDING_DATACommand</legend>
+        <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+          <button id="send-stop-sending-data-button" type="button" class="custom-command-button">Send STOP_SENDING_DATA</button>
+        </div>
+        <div id="stop-sending-data-preview" class="command-preview">
+          <div style="font-weight: bold; color: #0075B8; margin-bottom: 5px;">Command to Send:</div>
+          <div id="stop-sending-data-hex-display" style="font-family: monospace; background-color: #f8f9fa; padding: 8px; border-radius: 5px; border: 1px solid #dee2e6;">0xAF 0x02 0x01 0xAC</div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>SET_POWERCommand</legend>
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+          <label for="power-state-input" style="font-weight: bold; color: #0075B8;">4th Byte:</label>
+          <input type="number" id="power-state-input" class="custom-command-input" value="1" min="0" max="255" style="width: 80px; padding: 8px; border: 2px solid #0075B8; border-radius: 5px; text-align: center; font-weight: bold;">
+          <span style="color: #666666; font-size: 11pt;">(0-255)</span>
+        </div>
+        <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+          <button id="send-set-power-button" type="button" class="custom-command-button">Send SET_POWER</button>
+        </div>
+        <div id="command-preview" class="command-preview">
+          <div style="font-weight: bold; color: #0075B8; margin-bottom: 5px;">Command to Send:</div>
+          <div id="command-hex-display" style="font-family: monospace; background-color: #f8f9fa; padding: 8px; border-radius: 5px; border: 1px solid #dee2e6;"></div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>SET_JOYSTICKCommand</legend>
+        <div style="display: flex; gap: 20px;">
+          <!-- Left Side: SET_JOYSTICKCommand -->
+          <div style="flex: 0 0 350px;">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+              <label for="body-priority-input" style="font-weight: bold; color: #0075B8; min-width: 120px;">4th Byte (Body Priority):</label>
+              <input type="number" id="body-priority-input" class="custom-command-input" value="0" min="0" max="255" style="width: 80px; padding: 8px; border: 2px solid #0075B8; border-radius: 5px; text-align: center; font-weight: bold;">
+              <span style="color: #666666; font-size: 11pt;">(0-255)</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+              <label for="forward-backward-input" style="font-weight: bold; color: #0075B8; min-width: 120px;">5th Byte (Forward/Backward Direction):</label>
+              <input type="number" id="forward-backward-input" class="custom-command-input" value="0" min="-128" max="127" style="width: 100px; padding: 8px; border: 2px solid #0075B8; border-radius: 5px; text-align: center; font-weight: bold;">
+              <span style="color: #666666; font-size: 11pt;">(-128-127)</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+              <label for="left-right-input" style="font-weight: bold; color: #0075B8; min-width: 120px;">6th Byte (Left/Right Turn Direction):</label>
+              <input type="number" id="left-right-input" class="custom-command-input" value="0" min="-128" max="127" style="width: 100px; padding: 8px; border: 2px solid #0075B8; border-radius: 5px; text-align: center; font-weight: bold;">
+              <span style="color: #666666; font-size: 11pt;">(-128-127)</span>
+            </div>
+            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+              <button id="send-set-joystick-button" type="button" class="custom-command-button">Send SET_JOYSTICK</button>
+              <button id="send-set-joystick-continuous-button" type="button" class="custom-command-button continuous-button">Send SET_JOYSTICK (Continuous)</button>
+            </div>
+            <div id="set-joystick-preview" class="command-preview">
+              <div style="font-weight: bold; color: #0075B8; margin-bottom: 5px;">Command to Send:</div>
+              <div id="set-joystick-hex-display" style="font-family: monospace; background-color: #f8f9fa; padding: 8px; border-radius: 5px; border: 1px solid #dee2e6;"></div>
+            </div>
+          </div>
+          
+          <!-- Right Side: Motor Status Display -->
+          <div style="flex: 0 0 400px;">
+            <div id="motor-status-container" style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <!-- Battery Information -->
+              <div class="motor-status-card" style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); border: 2px solid #2196f3; border-radius: 8px; padding: 8px; flex: 1; min-width: 120px;">
+                <div class="motor-status-header" style="font-weight: bold; color: #1976d2; margin-bottom: 6px; text-align: center; font-size: 11pt;">🔋 Battery</div>
+                <div class="motor-status-item" style="margin-bottom: 3px; display: flex; justify-content: space-between;">
+                  <span class="motor-status-label" style="font-weight: bold; color: #1976d2; font-size: 9pt;">Level:</span>
+                  <span id="battery-level" class="motor-status-value" style="color: #000; font-weight: bold; font-size: 9pt;">-</span>
+                </div>
+                <div class="motor-status-item" style="margin-bottom: 3px; display: flex; justify-content: space-between;">
+                  <span class="motor-status-label" style="font-weight: bold; color: #1976d2; font-size: 9pt;">Current:</span>
+                  <span id="battery-current" class="motor-status-value" style="color: #000; font-weight: bold; font-size: 9pt;">-</span>
+                </div>
+                <div class="motor-status-item" style="margin-bottom: 3px; display: flex; justify-content: space-between;">
+                  <span class="motor-status-label" style="font-weight: bold; color: #1976d2; font-size: 9pt;">Low Level:</span>
+                  <span id="battery-status" class="motor-status-value" style="color: #000; font-weight: bold; font-size: 9pt;">-</span>
+                </div>
+                <div class="motor-status-item" style="display: flex; justify-content: space-between;">
+                  <span class="motor-status-label" style="font-weight: bold; color: #1976d2; font-size: 9pt;">Low Buzzer:</span>
+                  <span id="buzzer-status" class="motor-status-value" style="color: #000; font-weight: bold; font-size: 9pt;">-</span>
+                </div>
+              </div>
+
+              <!-- System Status Information -->
+              <div class="motor-status-card" style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); border: 2px solid #2196f3; border-radius: 8px; padding: 8px; flex: 1; min-width: 120px;">
+                <div class="motor-status-header" style="font-weight: bold; color: #1976d2; margin-bottom: 6px; text-align: center; font-size: 11pt;">⚙️ System</div>
+                <div class="motor-status-item" style="margin-bottom: 3px; display: flex; justify-content: space-between;">
+                  <span class="motor-status-label" style="font-weight: bold; color: #1976d2; font-size: 9pt;">Power:</span>
+                  <span id="power-status" class="motor-status-value" style="color: #000; font-weight: bold; font-size: 9pt;">-</span>
+                </div>
+                <div class="motor-status-item" style="margin-bottom: 3px; display: flex; justify-content: space-between;">
+                  <span class="motor-status-label" style="font-weight: bold; color: #1976d2; font-size: 9pt;">Display Speed:</span>
+                  <span id="speed-mode" class="motor-status-value" style="color: #000; font-weight: bold; font-size: 9pt;">-</span>
+                </div>
+                <div class="motor-status-item" style="margin-bottom: 3px; display: flex; justify-content: space-between;">
+                  <span class="motor-status-label" style="font-weight: bold; color: #1976d2; font-size: 9pt;">Error:</span>
+                  <span id="error-code" class="motor-status-value" style="color: #000; font-weight: bold; font-size: 9pt;">-</span>
+                </div>
+                <div class="motor-status-item" style="display: flex; justify-content: space-between;">
+                  <span class="motor-status-label" style="font-weight: bold; color: #1976d2; font-size: 9pt;">Counter:</span>
+                  <span id="angle-counter" class="motor-status-value" style="color: #000; font-weight: bold; font-size: 9pt;">-</span>
+                </div>
+              </div>
+
+              <!-- Motor Angle Information -->
+              <div class="motor-status-card" style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); border: 2px solid #2196f3; border-radius: 8px; padding: 8px; flex: 1; min-width: 120px;">
+                <div class="motor-status-header" style="font-weight: bold; color: #1976d2; margin-bottom: 6px; text-align: center; font-size: 11pt;">🔄 Angle</div>
+                <div class="motor-status-item" style="margin-bottom: 3px; display: flex; justify-content: space-between;">
+                  <span class="motor-status-label" style="font-weight: bold; color: #1976d2; font-size: 9pt;">Right:</span>
+                  <span id="motor-angle-right" class="motor-status-value" style="color: #000; font-weight: bold; font-size: 9pt;">-</span>
+                </div>
+                <div class="motor-status-item" style="display: flex; justify-content: space-between;">
+                  <span class="motor-status-label" style="font-weight: bold; color: #1976d2; font-size: 9pt;">Left:</span>
+                  <span id="motor-angle-left" class="motor-status-value" style="color: #000; font-weight: bold; font-size: 9pt;">-</span>
+                </div>
+              </div>
+
+              <!-- Motor Velocity Information -->
+              <div class="motor-status-card" style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); border: 2px solid #2196f3; border-radius: 8px; padding: 8px; flex: 1; min-width: 120px;">
+                <div class="motor-status-header" style="font-weight: bold; color: #1976d2; margin-bottom: 6px; text-align: center; font-size: 11pt;">⚡ Speed</div>
+                <div class="motor-status-item" style="margin-bottom: 3px; display: flex; justify-content: space-between;">
+                  <span class="motor-status-label" style="font-weight: bold; color: #1976d2; font-size: 9pt;">Right:</span>
+                  <span id="motor-speed-right" class="motor-status-value" style="color: #000; font-weight: bold; font-size: 9pt;">-</span>
+                </div>
+                <div class="motor-status-item" style="display: flex; justify-content: space-between;">
+                  <span class="motor-status-label" style="font-weight: bold; color: #1976d2; font-size: 9pt;">Left:</span>
+                  <span id="motor-speed-left" class="motor-status-value" style="color: #000; font-weight: bold; font-size: 9pt;">-</span>
+                </div>
+              </div>
+
+              <!-- Joystick Information -->
+              <div class="motor-status-card" style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); border: 2px solid #2196f3; border-radius: 8px; padding: 8px; flex: 1; min-width: 120px;">
+                <div class="motor-status-header" style="font-weight: bold; color: #1976d2; margin-bottom: 6px; text-align: center; font-size: 11pt;">🎮 Joystick</div>
+                <div class="motor-status-item" style="margin-bottom: 3px; display: flex; justify-content: space-between;">
+                  <span class="motor-status-label" style="font-weight: bold; color: #1976d2; font-size: 9pt;">Forward/Backward:</span>
+                  <span id="joystick-forward" class="motor-status-value" style="color: #000; font-weight: bold; font-size: 9pt;">-</span>
+                </div>
+                <div class="motor-status-item" style="display: flex; justify-content: space-between;">
+                  <span class="motor-status-label" style="font-weight: bold; color: #1976d2; font-size: 9pt;">Left/Right:</span>
+                  <span id="joystick-turn" class="motor-status-value" style="color: #000; font-weight: bold; font-size: 9pt;">-</span>
+                </div>
+              </div>
+            </div>
+            <div style="text-align: center; margin-top: 10px;">
+              <button id="clear-motor-status-button" type="button" class="clear-button" style="font-size: 10pt; padding: 5px 10px;">Clear Motor Status</button>
+            </div>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>SET_SPEED_PROFILECommand</legend>
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+          <label for="sp-byte-4" style="font-weight: bold; color: #0075B8; min-width: 120px;">4th Byte (Speed Profile Number):</label>
+          <input type="number" id="sp-byte-4" class="custom-command-input" value="4" min="0" max="255" style="width: 80px; padding: 8px; border: 2px solid #0075B8; border-radius: 5px; text-align: center; font-weight: bold;">
+          <span style="color: #666666; font-size: 11pt;">(0-255)</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+          <label style="font-weight: bold; color: #0075B8; min-width: 120px;">5-7th Byte (Forward):</label>
+          <div style="display: flex; gap: 5px; align-items: center;">
+            <span style="font-size: 10pt; color: #666;">F_M1:</span>
+            <input type="number" id="sp-byte-5" class="custom-command-input" value="60" min="0" max="255" style="width: 60px; padding: 8px; border: 2px solid #0075B8; border-radius: 5px; text-align: center; font-weight: bold;">
+            <span style="font-size: 10pt; color: #666;">F_A1:</span>
+            <input type="number" id="sp-byte-6" class="custom-command-input" value="32" min="0" max="255" style="width: 60px; padding: 8px; border: 2px solid #0075B8; border-radius: 5px; text-align: center; font-weight: bold;">
+            <span style="font-size: 10pt; color: #666;">F_D1:</span>
+            <input type="number" id="sp-byte-7" class="custom-command-input" value="96" min="0" max="255" style="width: 60px; padding: 8px; border: 2px solid #0075B8; border-radius: 5px; text-align: center; font-weight: bold;">
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+          <label style="font-weight: bold; color: #0075B8; min-width: 120px;">8-10th Byte (Backward):</label>
+          <div style="display: flex; gap: 5px; align-items: center;">
+            <span style="font-size: 10pt; color: #666;">R_M1:</span>
+            <input type="number" id="sp-byte-8" class="custom-command-input" value="20" min="0" max="255" style="width: 60px; padding: 8px; border: 2px solid #0075B8; border-radius: 5px; text-align: center; font-weight: bold;">
+            <span style="font-size: 10pt; color: #666;">R_A1:</span>
+            <input type="number" id="sp-byte-9" class="custom-command-input" value="24" min="0" max="255" style="width: 60px; padding: 8px; border: 2px solid #0075B8; border-radius: 5px; text-align: center; font-weight: bold;">
+            <span style="font-size: 10pt; color: #666;">R_D1:</span>
+            <input type="number" id="sp-byte-10" class="custom-command-input" value="64" min="0" max="255" style="width: 60px; padding: 8px; border: 2px solid #0075B8; border-radius: 5px; text-align: center; font-weight: bold;">
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+          <label style="font-weight: bold; color: #0075B8; min-width: 120px;">11-13th Byte (Turn):</label>
+          <div style="display: flex; gap: 5px; align-items: center;">
+            <span style="font-size: 10pt; color: #666;">T_M1:</span>
+            <input type="number" id="sp-byte-11" class="custom-command-input" value="35" min="0" max="255" style="width: 60px; padding: 8px; border: 2px solid #0075B8; border-radius: 5px; text-align: center; font-weight: bold;">
+            <span style="font-size: 10pt; color: #666;">T_A1:</span>
+            <input type="number" id="sp-byte-12" class="custom-command-input" value="56" min="0" max="255" style="width: 60px; padding: 8px; border: 2px solid #0075B8; border-radius: 5px; text-align: center; font-weight: bold;">
+            <span style="font-size: 10pt; color: #666;">T_D1:</span>
+            <input type="number" id="sp-byte-13" class="custom-command-input" value="72" min="0" max="255" style="width: 60px; padding: 8px; border: 2px solid #0075B8; border-radius: 5px; text-align: center; font-weight: bold;">
+          </div>
+        </div>
+        <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+          <button id="send-set-speed-profile-button" type="button" class="custom-command-button">Send SET_SPEED_PROFILE</button>
+        </div>
+        <div id="set-speed-profile-preview" class="command-preview">
+          <div style="font-weight: bold; color: #0075B8; margin-bottom: 5px;">Command to Send:</div>
+          <div id="set-speed-profile-hex-display" style="font-family: monospace; background-color: #f8f9fa; padding: 8px; border-radius: 5px; border: 1px solid #dee2e6;"></div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>SET_BATTERY_SAVINGCommand</legend>
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+          <label for="battery-level-input" style="font-weight: bold; color: #0075B8; min-width: 120px;">4th Byte (Battery saving level):</label>
+          <input type="number" id="battery-level-input" class="custom-command-input" value="19" min="0" max="255" style="width: 80px; padding: 8px; border: 2px solid #0075B8; border-radius: 5px; text-align: center; font-weight: bold;">
+          <span style="color: #666666; font-size: 11pt;">(0-255)</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+          <label for="buzzer-setting-input" style="font-weight: bold; color: #0075B8; min-width: 120px;">5th Byte (Buzzer setting):</label>
+          <input type="number" id="buzzer-setting-input" class="custom-command-input" value="0" min="0" max="255" style="width: 80px; padding: 8px; border: 2px solid #0075B8; border-radius: 5px; text-align: center; font-weight: bold;">
+          <span style="color: #666666; font-size: 11pt;">(0-255)</span>
+        </div>
+        <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+          <button id="send-set-battery-saving-button" type="button" class="custom-command-button">Send SET_BATTERY_SAVING</button>
+        </div>
+        <div id="set-battery-saving-preview" class="command-preview">
+          <div style="font-weight: bold; color: #0075B8; margin-bottom: 5px;">Command to Send:</div>
+          <div id="set-battery-saving-hex-display" style="font-family: monospace; background-color: #f8f9fa; padding: 8px; border-radius: 5px; border: 1px solid #dee2e6;"></div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>SET_VELOCITYCommand</legend>
+        <div style="display: flex; gap: 20px;">
+          <!-- Left Side: SET_VELOCITYCommand -->
+          <div style="flex: 0 0 350px;">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+              <label for="velocity-body-priority-input" style="font-weight: bold; color: #0075B8; min-width: 120px;">4th Byte (Body Priority):</label>
+              <input type="number" id="velocity-body-priority-input" class="custom-command-input" value="0" min="0" max="255" style="width: 80px; padding: 8px; border: 2px solid #0075B8; border-radius: 5px; text-align: center; font-weight: bold;">
+              <span style="color: #666666; font-size: 11pt;">(0-255)</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+              <label for="forward-backward-velocity-input" style="font-weight: bold; color: #0075B8; min-width: 120px;">5-6th Byte (Forward/Backward Directionspeed):</label>
+              <input type="number" id="forward-backward-velocity-input" class="custom-command-input" value="0" min="-32768" max="32767" style="width: 120px; padding: 8px; border: 2px solid #0075B8; border-radius: 5px; text-align: center; font-weight: bold;">
+              <span style="color: #666666; font-size: 11pt;">(-32768-32767)</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+              <label for="left-right-velocity-input" style="font-weight: bold; color: #0075B8; min-width: 120px;">7-8th Byte (Left/Right Turn Directionspeed):</label>
+              <input type="number" id="left-right-velocity-input" class="custom-command-input" value="0" min="-32768" max="32767" style="width: 120px; padding: 8px; border: 2px solid #0075B8; border-radius: 5px; text-align: center; font-weight: bold;">
+              <span style="color: #666666; font-size: 11pt;">(-32768-32767)</span>
+            </div>
+            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+              <button id="send-set-velocity-button" type="button" class="custom-command-button">Send SET_VELOCITY</button>
+              <button id="send-set-velocity-continuous-button" type="button" class="custom-command-button continuous-button">Send SET_VELOCITY (Continuous)</button>
+            </div>
+            <div id="set-velocity-preview" class="command-preview">
+              <div style="font-weight: bold; color: #0075B8; margin-bottom: 5px;">Command to Send:</div>
+              <div id="set-velocity-hex-display" style="font-family: monospace; background-color: #f8f9fa; padding: 8px; border-radius: 5px; border: 1px solid #dee2e6;"></div>
+            </div>
+          </div>
+          
+          <!-- Right Side: Motor Status Display (for SET_VELOCITY) -->
+          <div style="flex: 0 0 400px;">
+            <div id="motor-status-container-velocity" style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <!-- Battery Information -->
+              <div class="motor-status-card" style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); border: 2px solid #2196f3; border-radius: 8px; padding: 8px; flex: 1; min-width: 120px;">
+                <div class="motor-status-header" style="font-weight: bold; color: #1976d2; margin-bottom: 6px; text-align: center; font-size: 11pt;">🔋 Battery</div>
+                <div class="motor-status-item" style="margin-bottom: 3px; display: flex; justify-content: space-between;">
+                  <span class="motor-status-label" style="font-weight: bold; color: #1976d2; font-size: 9pt;">Level:</span>
+                  <span id="battery-level-velocity" class="motor-status-value" style="color: #000; font-weight: bold; font-size: 9pt;">-</span>
+                </div>
+                <div class="motor-status-item" style="margin-bottom: 3px; display: flex; justify-content: space-between;">
+                  <span class="motor-status-label" style="font-weight: bold; color: #1976d2; font-size: 9pt;">Current:</span>
+                  <span id="battery-current-velocity" class="motor-status-value" style="color: #000; font-weight: bold; font-size: 9pt;">-</span>
+                </div>
+                <div class="motor-status-item" style="margin-bottom: 3px; display: flex; justify-content: space-between;">
+                  <span class="motor-status-label" style="font-weight: bold; color: #1976d2; font-size: 9pt;">Low Level:</span>
+                  <span id="battery-status-velocity" class="motor-status-value" style="color: #000; font-weight: bold; font-size: 9pt;">-</span>
+                </div>
+                <div class="motor-status-item" style="display: flex; justify-content: space-between;">
+                  <span class="motor-status-label" style="font-weight: bold; color: #1976d2; font-size: 9pt;">Low Buzzer:</span>
+                  <span id="buzzer-status-velocity" class="motor-status-value" style="color: #000; font-weight: bold; font-size: 9pt;">-</span>
+                </div>
+              </div>
+
+              <!-- System Status Information -->
+              <div class="motor-status-card" style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); border: 2px solid #2196f3; border-radius: 8px; padding: 8px; flex: 1; min-width: 120px;">
+                <div class="motor-status-header" style="font-weight: bold; color: #1976d2; margin-bottom: 6px; text-align: center; font-size: 11pt;">⚙️ System</div>
+                <div class="motor-status-item" style="margin-bottom: 3px; display: flex; justify-content: space-between;">
+                  <span class="motor-status-label" style="font-weight: bold; color: #1976d2; font-size: 9pt;">Power:</span>
+                  <span id="power-status-velocity" class="motor-status-value" style="color: #000; font-weight: bold; font-size: 9pt;">-</span>
+                </div>
+                <div class="motor-status-item" style="margin-bottom: 3px; display: flex; justify-content: space-between;">
+                  <span class="motor-status-label" style="font-weight: bold; color: #1976d2; font-size: 9pt;">Display Speed:</span>
+                  <span id="speed-mode-velocity" class="motor-status-value" style="color: #000; font-weight: bold; font-size: 9pt;">-</span>
+                </div>
+                <div class="motor-status-item" style="margin-bottom: 3px; display: flex; justify-content: space-between;">
+                  <span class="motor-status-label" style="font-weight: bold; color: #1976d2; font-size: 9pt;">Error:</span>
+                  <span id="error-code-velocity" class="motor-status-value" style="color: #000; font-weight: bold; font-size: 9pt;">-</span>
+                </div>
+                <div class="motor-status-item" style="display: flex; justify-content: space-between;">
+                  <span class="motor-status-label" style="font-weight: bold; color: #1976d2; font-size: 9pt;">Counter:</span>
+                  <span id="angle-counter-velocity" class="motor-status-value" style="color: #000; font-weight: bold; font-size: 9pt;">-</span>
+                </div>
+              </div>
+
+              <!-- Motor Angle Information -->
+              <div class="motor-status-card" style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); border: 2px solid #2196f3; border-radius: 8px; padding: 8px; flex: 1; min-width: 120px;">
+                <div class="motor-status-header" style="font-weight: bold; color: #1976d2; margin-bottom: 6px; text-align: center; font-size: 11pt;">🔄 Angle</div>
+                <div class="motor-status-item" style="margin-bottom: 3px; display: flex; justify-content: space-between;">
+                  <span class="motor-status-label" style="font-weight: bold; color: #1976d2; font-size: 9pt;">Right:</span>
+                  <span id="motor-angle-right-velocity" class="motor-status-value" style="color: #000; font-weight: bold; font-size: 9pt;">-</span>
+                </div>
+                <div class="motor-status-item" style="display: flex; justify-content: space-between;">
+                  <span class="motor-status-label" style="font-weight: bold; color: #1976d2; font-size: 9pt;">Left:</span>
+                  <span id="motor-angle-left-velocity" class="motor-status-value" style="color: #000; font-weight: bold; font-size: 9pt;">-</span>
+                </div>
+              </div>
+
+              <!-- Motor Velocity Information -->
+              <div class="motor-status-card" style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); border: 2px solid #2196f3; border-radius: 8px; padding: 8px; flex: 1; min-width: 120px;">
+                <div class="motor-status-header" style="font-weight: bold; color: #1976d2; margin-bottom: 6px; text-align: center; font-size: 11pt;">⚡ Speed</div>
+                <div class="motor-status-item" style="margin-bottom: 3px; display: flex; justify-content: space-between;">
+                  <span class="motor-status-label" style="font-weight: bold; color: #1976d2; font-size: 9pt;">Right:</span>
+                  <span id="motor-speed-right-velocity" class="motor-status-value" style="color: #000; font-weight: bold; font-size: 9pt;">-</span>
+                </div>
+                <div class="motor-status-item" style="display: flex; justify-content: space-between;">
+                  <span class="motor-status-label" style="font-weight: bold; color: #1976d2; font-size: 9pt;">Left:</span>
+                  <span id="motor-speed-left-velocity" class="motor-status-value" style="color: #000; font-weight: bold; font-size: 9pt;">-</span>
+                </div>
+              </div>
+
+              <!-- Joystick Information -->
+              <div class="motor-status-card" style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); border: 2px solid #2196f3; border-radius: 8px; padding: 8px; flex: 1; min-width: 120px;">
+                <div class="motor-status-header" style="font-weight: bold; color: #1976d2; margin-bottom: 6px; text-align: center; font-size: 11pt;">🎮 Joystick</div>
+                <div class="motor-status-item" style="margin-bottom: 3px; display: flex; justify-content: space-between;">
+                  <span class="motor-status-label" style="font-weight: bold; color: #1976d2; font-size: 9pt;">Forward/Backward:</span>
+                  <span id="joystick-forward-velocity" class="motor-status-value" style="color: #000; font-weight: bold; font-size: 9pt;">-</span>
+                </div>
+                <div class="motor-status-item" style="display: flex; justify-content: space-between;">
+                  <span class="motor-status-label" style="font-weight: bold; color: #1976d2; font-size: 9pt;">Left/Right:</span>
+                  <span id="joystick-turn-velocity" class="motor-status-value" style="color: #000; font-weight: bold; font-size: 9pt;">-</span>
+                </div>
+              </div>
+            </div>
+            <div style="text-align: center; margin-top: 10px;">
+              <button id="clear-motor-status-velocity-button" type="button" class="clear-button" style="font-size: 10pt; padding: 5px 10px;">Clear Motor Status</button>
+            </div>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Send/Receive Data Display</legend>
+        <div id="custom-command-data-display"></div>
+        <button id="custom-command-clear-button" type="button" class="clear-button">Clear</button>
+      </fieldset>
+    </div>
+  </div>
+
+  <!-- End of post-connection display area -->
+  </div>
+
+  <footer>
+    <p>Please use a Web Serial API compatible browser (Chrome, Edge)</p>
+  </footer>
+
+  <script>
+    const initialConnectButton = document.getElementById('initial-connect-button');
+    const disconnectButton = document.getElementById('disconnect-button');
+    const powerOnButton = document.getElementById('power-on-button');
+    const powerOffButton = document.getElementById('power-off-button');
+    const clearButton = document.getElementById('clear-button');
+    const dataDisplay = document.getElementById('data-display');
+
+    // Motor status buttons for basic function tab
+    const mainStartSendingDataButton = document.getElementById('main-start-sending-data-button');
+    const mainStopSendingDataButton = document.getElementById('main-stop-sending-data-button');
+    const mainClearMotorStatusButton = document.getElementById('main-clear-motor-status-button');
+
+    // Speed profile elements
+    const getSpeedProfilesButton = document.getElementById('get-speed-profiles-button');
+    const setSpeedProfilesButton = document.getElementById('set-speed-profiles-button');
+    const cancelSpeedProfilesButton = document.getElementById('cancel-speed-profiles-button');
+    const speedProfilesStatus = document.getElementById('speed-profiles-status');
+    const speedProfileDataDisplay = document.getElementById('speed-profile-data-display');
+    const speedProfileClearButton = document.getElementById('speed-profile-clear-button');
+
+    // Custom command elements
+    const powerStateInput = document.getElementById('power-state-input');
+    const sendSetPowerButton = document.getElementById('send-set-power-button');
+    const commandPreview = document.getElementById('command-preview');
+    const commandHexDisplay = document.getElementById('command-hex-display');
+    const customCommandDataDisplay = document.getElementById('custom-command-data-display');
+    const customCommandClearButton = document.getElementById('custom-command-clear-button');
+
+    // START_SENDING_DATA command elements
+    const dataSetInput = document.getElementById('data-set-input');
+    const sendIntervalInput = document.getElementById('send-interval-input');
+    const speedProfileInput = document.getElementById('speed-profile-input');
+    const sendStartSendingDataButton = document.getElementById('send-start-sending-data-button');
+    const startSendingDataPreview = document.getElementById('start-sending-data-preview');
+    const startSendingDataHexDisplay = document.getElementById('start-sending-data-hex-display');
+
+    // STOP_SENDING_DATA command elements
+    const sendStopSendingDataButton = document.getElementById('send-stop-sending-data-button');
+    const stopSendingDataPreview = document.getElementById('stop-sending-data-preview');
+    const stopSendingDataHexDisplay = document.getElementById('stop-sending-data-hex-display');
+
+    // SET_JOYSTICK command elements
+    const bodyPriorityInput = document.getElementById('body-priority-input');
+    const forwardBackwardInput = document.getElementById('forward-backward-input');
+    const leftRightInput = document.getElementById('left-right-input');
+    const sendSetJoystickButton = document.getElementById('send-set-joystick-button');
+    const sendSetJoystickContinuousButton = document.getElementById('send-set-joystick-continuous-button');
+    const setJoystickPreview = document.getElementById('set-joystick-preview');
+    const setJoystickHexDisplay = document.getElementById('set-joystick-hex-display');
+
+    // SET_SPEED_PROFILE command elements
+    const speedProfileInputs = [];
+    for (let i = 4; i <= 13; i++) {
+      speedProfileInputs[i] = document.getElementById(`sp-byte-${i}`);
+    }
+    const sendSetSpeedProfileButton = document.getElementById('send-set-speed-profile-button');
+    const setSpeedProfilePreview = document.getElementById('set-speed-profile-preview');
+    const setSpeedProfileHexDisplay = document.getElementById('set-speed-profile-hex-display');
+
+    // SET_BATTERY_SAVING command elements
+    const batteryLevelInput = document.getElementById('battery-level-input');
+    const buzzerSettingInput = document.getElementById('buzzer-setting-input');
+    const sendSetBatterySavingButton = document.getElementById('send-set-battery-saving-button');
+    const setBatterySavingPreview = document.getElementById('set-battery-saving-preview');
+    const setBatterySavingHexDisplay = document.getElementById('set-battery-saving-hex-display');
+
+    // SET_VELOCITY command elements
+    const velocityBodyPriorityInput = document.getElementById('velocity-body-priority-input');
+    const forwardBackwardVelocityInput = document.getElementById('forward-backward-velocity-input');
+    const leftRightVelocityInput = document.getElementById('left-right-velocity-input');
+    const sendSetVelocityButton = document.getElementById('send-set-velocity-button');
+    const sendSetVelocityContinuousButton = document.getElementById('send-set-velocity-continuous-button');
+    const setVelocityPreview = document.getElementById('set-velocity-preview');
+    const setVelocityHexDisplay = document.getElementById('set-velocity-hex-display');
+
+    // Joystick elements
+    const joystick = document.getElementById('joystick');
+    const knob = document.getElementById('knob');
+    const joystickValues = document.getElementById('joystick-values');
+
+    let port;
+    let keepReading = true;
+    let reader;
+    let closed;
+    let isConnected = false;
+
+    // Joystick state
+    let joystickActive = false;
+    let joystickData = { x: 0, y: 0 };
+    let joystickInterval = null;
+
+    // Speed profile state
+    let speedProfiles = [];
+    let currentSpeedMode = 0;
+    let isGettingSpeedProfiles = false;
+    let isCancellingSpeedProfiles = false; // Cancel flag
+    let speedProfileTimeout = null;
+    let speedProfileBuffer = new Uint8Array(0); // Speed profile dedicated buffer
+    let speedProfilesRetrieved = false; // Speed profile retrieval completion flag
+    let motorStatusBuffer = new Uint8Array(0); // Motor status dedicated buffer
+    let deviceModel = null; // For storing device model
+
+    // UI display switching function
+    function updateConnectionUI(connected) {
+      const preConnectionArea = document.getElementById('pre-connection-area');
+      const postConnectionArea = document.getElementById('post-connection-area');
+      
+      if (connected) {
+        preConnectionArea.style.display = 'none';
+        postConnectionArea.style.display = 'block';
+      } else {
+        preConnectionArea.style.display = 'flex';
+        postConnectionArea.style.display = 'none';
+      }
+    }
+
+    // Tab switching function
+    function switchTab(tabName) {
+      // Hide all tab contents
+      const tabContents = document.querySelectorAll('.tab-content');
+      tabContents.forEach(content => content.classList.remove('active'));
+
+      // Deactivate all tab buttons
+      const tabButtons = document.querySelectorAll('.tab-button');
+      tabButtons.forEach(button => button.classList.remove('active'));
+
+      // Show selected tab
+      if (tabName === 'main') {
+        document.getElementById('main-tab').classList.add('active');
+        document.querySelector('.tab-button[onclick="switchTab(\'main\')"]').classList.add('active');
+      } else if (tabName === 'speed-profile') {
+        document.getElementById('speed-profile-tab').classList.add('active');
+        document.querySelector('.tab-button[onclick="switchTab(\'speed-profile\')"]').classList.add('active');
+      } else if (tabName === 'custom-command') {
+        document.getElementById('custom-command-tab').classList.add('active');
+        document.querySelector('.tab-button[onclick="switchTab(\'custom-command\')"]').classList.add('active');
+      }
+
+      // Scroll to top when switching tabs
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    }
+
+    // Data display function (displayed on all tabs)
+    function displayData(data) {
+      const timestamp = new Date().toLocaleTimeString();
+      const hexData = Array.from(data).map(byte => '0x' + byte.toString(16).toUpperCase().padStart(2, '0')).join(' ');
+      const message = `[${timestamp}] Received: ${hexData}\n`;
+      dataDisplay.textContent += message;
+      speedProfileDataDisplay.textContent += message;
+      customCommandDataDisplay.textContent += message;
+      dataDisplay.scrollTop = dataDisplay.scrollHeight;
+      speedProfileDataDisplay.scrollTop = speedProfileDataDisplay.scrollHeight;
+      customCommandDataDisplay.scrollTop = customCommandDataDisplay.scrollHeight;
+    }
+
+    // Clear button handler (clear all tabs)
+    clearButton.addEventListener('click', () => {
+      dataDisplay.textContent = '';
+      speedProfileDataDisplay.textContent = '';
+      customCommandDataDisplay.textContent = '';
+    });
+
+
+    // Clear button handler for speed profile (clear all tabs)
+    speedProfileClearButton.addEventListener('click', () => {
+      dataDisplay.textContent = '';
+      speedProfileDataDisplay.textContent = '';
+      customCommandDataDisplay.textContent = '';
+    });
+
+    // Clear Motor Status button handler
+    const clearMotorStatusButton = document.getElementById('clear-motor-status-button');
+    const clearMotorStatusVelocityButton = document.getElementById('clear-motor-status-velocity-button');
+    const clearMotorStatusStartSendingButton = document.getElementById('clear-motor-status-start-sending-button');
+    
+    function clearMotorStatusDisplays() {
+      // Reset three motor status displays
+      const displayIds = ['', '-velocity', '-start-sending'];
+      
+      displayIds.forEach(suffix => {
+        document.getElementById(`battery-status${suffix}`).textContent = '-';
+        document.getElementById(`battery-level${suffix}`).textContent = '-';
+        document.getElementById(`battery-current${suffix}`).textContent = '-';
+        document.getElementById(`joystick-forward${suffix}`).textContent = '-';
+        document.getElementById(`joystick-turn${suffix}`).textContent = '-';
+        document.getElementById(`motor-angle-right${suffix}`).textContent = '-';
+        document.getElementById(`motor-angle-left${suffix}`).textContent = '-';
+        document.getElementById(`motor-speed-right${suffix}`).textContent = '-';
+        document.getElementById(`motor-speed-left${suffix}`).textContent = '-';
+        document.getElementById(`power-status${suffix}`).textContent = '-';
+        document.getElementById(`speed-mode${suffix}`).textContent = '-';
+        document.getElementById(`error-code${suffix}`).textContent = '-';
+        document.getElementById(`angle-counter${suffix}`).textContent = '-';
+        document.getElementById(`buzzer-status${suffix}`).textContent = '-';
+        
+        // Reset color
+        document.getElementById(`error-code${suffix}`).style.color = '#000';
+        document.getElementById(`error-code${suffix}`).style.fontWeight = 'normal';
+        document.getElementById(`battery-level${suffix}`).style.color = '#000';
+      });
+      
+      // Clear motor status buffer
+      motorStatusBuffer = new Uint8Array(0);
+    }
+
+    // Function to clear motor status display for basic function tab
+    function clearMainMotorStatusDisplay() {
+      document.getElementById('main-battery-level').textContent = '-';
+      document.getElementById('main-battery-current').textContent = '-';
+      document.getElementById('main-battery-status').textContent = '-';
+      document.getElementById('main-buzzer-status').textContent = '-';
+      document.getElementById('main-power-status').textContent = '-';
+      document.getElementById('main-speed-mode').textContent = '-';
+      document.getElementById('main-error-code').textContent = '-';
+      document.getElementById('main-angle-counter').textContent = '-';
+      document.getElementById('main-motor-angle-right').textContent = '-';
+      document.getElementById('main-motor-angle-left').textContent = '-';
+      document.getElementById('main-motor-speed-right').textContent = '-';
+      document.getElementById('main-motor-speed-left').textContent = '-';
+      
+      // Reset color
+      document.getElementById('main-error-code').style.color = '#000';
+      document.getElementById('main-error-code').style.fontWeight = 'normal';
+      document.getElementById('main-battery-level').style.color = '#000';
+    }
+
+    // Function to update motor status display for basic function tab
+    function updateMainMotorStatusDisplay(status) {
+      // Battery information
+      document.getElementById('main-battery-level').textContent = `${status.batteryLevel}%`;
+      document.getElementById('main-battery-current').textContent = `${(status.batteryCurrent * 2).toFixed(1)}mA`;
+      document.getElementById('main-battery-status').textContent = `${status.battery}%`;
+      document.getElementById('main-buzzer-status').textContent = status.buzzer ? 'ON' : 'OFF';
+
+      // System status information
+      document.getElementById('main-power-status').textContent = status.power ? 'ON' : 'OFF';
+      // Speed mode display conversion (0→1, 1→2, 2→3, 3→4, others→-)
+      let speedModeDisplay = '-';
+      if (status.speedMode === 0) speedModeDisplay = '1';
+      else if (status.speedMode === 1) speedModeDisplay = '2';
+      else if (status.speedMode === 2) speedModeDisplay = '3';
+      else if (status.speedMode === 3) speedModeDisplay = '4';
+      document.getElementById('main-speed-mode').textContent = speedModeDisplay;
+      document.getElementById('main-error-code').textContent = status.errorCode || 'None';
+      document.getElementById('main-angle-counter').textContent = status.angleCounter;
+
+      // Motor angle information (0.001rad unit)
+      document.getElementById('main-motor-angle-right').textContent = `${(status.motorAngleRight * 0.001).toFixed(3)}rad`;
+      document.getElementById('main-motor-angle-left').textContent = `${(status.motorAngleLeft * 0.001).toFixed(3)}rad`;
+
+      // Motor speed information (0.004km/h unit)
+      document.getElementById('main-motor-speed-right').textContent = `${(status.motorSpeedRight * 0.004).toFixed(3)}km/h`;
+      document.getElementById('main-motor-speed-left').textContent = `${(status.motorSpeedLeft * 0.004).toFixed(3)}km/h`;
+
+      // Change color according to error code
+      const errorElement = document.getElementById('main-error-code');
+      if (status.errorCode && status.errorCode !== 0) {
+        errorElement.style.color = '#dc3545';
+        errorElement.style.fontWeight = 'bold';
+      } else {
+        errorElement.style.color = '#000';
+        errorElement.style.fontWeight = 'normal';
+      }
+
+      // Change color according to battery level
+      const batteryElement = document.getElementById('main-battery-level');
+      if (status.batteryLevel < 20) {
+        batteryElement.style.color = '#dc3545';
+      } else if (status.batteryLevel < 50) {
+        batteryElement.style.color = '#ffc107';
+      } else {
+        batteryElement.style.color = '#28a745';
+      }
+    }
+    
+    clearMotorStatusButton.addEventListener('click', clearMotorStatusDisplays);
+    clearMotorStatusVelocityButton.addEventListener('click', clearMotorStatusDisplays);
+    clearMotorStatusStartSendingButton.addEventListener('click', clearMotorStatusDisplays);
+
+    // Clear Motor Status button for basic function tab
+    mainClearMotorStatusButton.addEventListener('click', clearMainMotorStatusDisplay);
+
+    // Status retrieval start button for basic function tab
+    mainStartSendingDataButton.addEventListener('click', async () => {
+      if (port && port.writable) {
+        try {
+          // Correct START_SENDING_DATA command: 0xAF 0x06 0x00 0x01 0x01 0xF4 0x00 0x5D
+          const startSendingDataCommand = new Uint8Array([0xAF, 0x06, 0x00, 0x01, 0x01, 0xF4, 0x00, 0x5D]);
+          
+          const writer = port.writable.getWriter();
+          await writer.write(startSendingDataCommand);
+          writer.releaseLock();
+
+          const timestamp = new Date().toLocaleTimeString();
+          const hexData = Array.from(startSendingDataCommand).map(byte => '0x' + byte.toString(16).toUpperCase().padStart(2, '0')).join(' ');
+          const message = `[${timestamp}] Status Retrieval Start Send: ${hexData}\n`;
+          dataDisplay.textContent += message;
+          speedProfileDataDisplay.textContent += message;
+          customCommandDataDisplay.textContent += message;
+          dataDisplay.scrollTop = dataDisplay.scrollHeight;
+          speedProfileDataDisplay.scrollTop = speedProfileDataDisplay.scrollHeight;
+          customCommandDataDisplay.scrollTop = customCommandDataDisplay.scrollHeight;
+        } catch (error) {
+          console.error('Start Status Retrieval Send Error:', error);
+        }
+      }
+    });
+
+    // Status retrieval stop button for basic function tab
+    mainStopSendingDataButton.addEventListener('click', async () => {
+      if (port && port.writable) {
+        try {
+          // Build STOP_SENDING_DATA command
+          // Format: 0xAF, 0x02, 0x01, 0xAC (4 bytes fixed)
+          const stopSendingDataCommand = new Uint8Array([0xAF, 0x02, 0x01, 0xAC]);
+          
+          const writer = port.writable.getWriter();
+          await writer.write(stopSendingDataCommand);
+          writer.releaseLock();
+
+          const timestamp = new Date().toLocaleTimeString();
+          const hexData = Array.from(stopSendingDataCommand).map(byte => '0x' + byte.toString(16).toUpperCase().padStart(2, '0')).join(' ');
+          const message = `[${timestamp}] Status Retrieval Stop Send: ${hexData}\n`;
+          dataDisplay.textContent += message;
+          speedProfileDataDisplay.textContent += message;
+          customCommandDataDisplay.textContent += message;
+          dataDisplay.scrollTop = dataDisplay.scrollHeight;
+          speedProfileDataDisplay.scrollTop = speedProfileDataDisplay.scrollHeight;
+          customCommandDataDisplay.scrollTop = customCommandDataDisplay.scrollHeight;
+        } catch (error) {
+          console.error('Stop Status Retrieval Send Error:', error);
+        }
+      }
+    });
+
+    // Clear button handler for custom command (clear all tabs)
+    customCommandClearButton.addEventListener('click', () => {
+      dataDisplay.textContent = '';
+      speedProfileDataDisplay.textContent = '';
+      customCommandDataDisplay.textContent = '';
+    });
+
+    // Power ON button handler
+    powerOnButton.addEventListener('click', async () => {
+      if (port && port.writable) {
+        try {
+          const powerOnData = new Uint8Array([0xAF, 0x03, 0x02, 0x01, 0xAF]);
+          const writer = port.writable.getWriter();
+          
+          // 1st time send
+          await writer.write(powerOnData);
+          
+          const timestamp1 = new Date().toLocaleTimeString();
+          const hexData = Array.from(powerOnData).map(byte => '0x' + byte.toString(16).toUpperCase().padStart(2, '0')).join(' ');
+          const message1 = `[${timestamp1}] Send: ${hexData} (1st time)\n`;
+          dataDisplay.textContent += message1;
+          customCommandDataDisplay.textContent += message1;
+          
+          // Wait 100ms
+          await new Promise(resolve => setTimeout(resolve, 100));
+          
+          // 2nd time send
+          await writer.write(powerOnData);
+          
+          const timestamp2 = new Date().toLocaleTimeString();
+          const message2 = `[${timestamp2}] Send: ${hexData} (2nd time)\n`;
+          dataDisplay.textContent += message2;
+          customCommandDataDisplay.textContent += message2;
+          
+          writer.releaseLock();
+          
+          // Scroll to bottom
+          dataDisplay.scrollTop = dataDisplay.scrollHeight;
+          customCommandDataDisplay.scrollTop = customCommandDataDisplay.scrollHeight;
+        } catch (error) {
+          console.error('Send Error:', error);
+        }
+      }
+    });
+
+    // Power OFF button handler
+    powerOffButton.addEventListener('click', async () => {
+      if (port && port.writable) {
+        try {
+          const powerOffData = new Uint8Array([0xAF, 0x03, 0x02, 0x00, 0xAE]);
+          const writer = port.writable.getWriter();
+          await writer.write(powerOffData);
+          writer.releaseLock();
+
+          const timestamp = new Date().toLocaleTimeString();
+          const hexData = Array.from(powerOffData).map(byte => '0x' + byte.toString(16).toUpperCase().padStart(2, '0')).join(' ');
+          const message = `[${timestamp}] Send: ${hexData}\n`;
+          dataDisplay.textContent += message;
+          customCommandDataDisplay.textContent += message;
+          dataDisplay.scrollTop = dataDisplay.scrollHeight;
+          customCommandDataDisplay.scrollTop = customCommandDataDisplay.scrollHeight;
+        } catch (error) {
+          console.error('Send Error:', error);
+        }
+      }
+    });
+
+    // Device information automatic retrieval
+    async function getDeviceInfo() {
+      if (port && port.writable) {
+        try {
+          const versionData = new Uint8Array([0xAF, 0x02, 0x07, 0xAA]);
+          const writer = port.writable.getWriter();
+          await writer.write(versionData);
+          writer.releaseLock();
+
+          const timestamp = new Date().toLocaleTimeString();
+          const hexData = Array.from(versionData).map(byte => '0x' + byte.toString(16).toUpperCase().padStart(2, '0')).join(' ');
+          const message = `[${timestamp}] Device Information Retrieval Send: ${hexData}\n`;
+          dataDisplay.textContent += message;
+          speedProfileDataDisplay.textContent += message;
+          customCommandDataDisplay.textContent += message;
+          dataDisplay.scrollTop = dataDisplay.scrollHeight;
+          speedProfileDataDisplay.scrollTop = speedProfileDataDisplay.scrollHeight;
+          customCommandDataDisplay.scrollTop = customCommandDataDisplay.scrollHeight;
+
+          // Start version response waiting process
+          await waitForVersionResponse();
+        } catch (error) {
+          console.error('Device Information Retrieval Error:', error);
+          // Error does not affect connection process
+        }
+      } else {
+        console.warn('Device information retrieval: Port is not available');
+      }
+    }
+
+    // Received data buffer
+    let receivedBuffer = new Uint8Array(0);
+
+    // Variables for version response waiting
+    let waitingForVersionResponse = false;
+    let versionResponseTimeout = null;
+    let versionResponseRetryCount = 0;
+    let versionResponseMaxRetries = 3;
+
+    // Version response waiting process
+    async function waitForVersionResponse() {
+      waitingForVersionResponse = true;
+      versionResponseRetryCount = 0;
+
+      // Retry process if no response after 500ms
+      versionResponseTimeout = setTimeout(async () => {
+        if (waitingForVersionResponse && versionResponseRetryCount < versionResponseMaxRetries) {
+          versionResponseRetryCount++;
+
+          // Resend
+          if (port && port.writable) {
+            try {
+              const versionData = new Uint8Array([0xAF, 0x02, 0x07, 0xAA]);
+              const writer = port.writable.getWriter();
+              await writer.write(versionData);
+              writer.releaseLock();
+
+              const timestamp = new Date().toLocaleTimeString();
+              const hexData = Array.from(versionData).map(byte => '0x' + byte.toString(16).toUpperCase().padStart(2, '0')).join(' ');
+              const message = `[${timestamp}] Retry (${versionResponseRetryCount}/${versionResponseMaxRetries}): ${hexData}\n`;
+              dataDisplay.textContent += message;
+              speedProfileDataDisplay.textContent += message;
+              dataDisplay.scrollTop = dataDisplay.scrollHeight;
+              speedProfileDataDisplay.scrollTop = speedProfileDataDisplay.scrollHeight;
+
+              // Wait 500ms after resend
+              setTimeout(() => {
+                if (waitingForVersionResponse && versionResponseRetryCount >= versionResponseMaxRetries) {
+                  const timestamp = new Date().toLocaleTimeString();
+                  const message = `[${timestamp}] Device Information Retrieval Failed (Max retries reached)\n`;
+                  dataDisplay.textContent += message;
+                  speedProfileDataDisplay.textContent += message;
+                  dataDisplay.scrollTop = dataDisplay.scrollHeight;
+                  speedProfileDataDisplay.scrollTop = speedProfileDataDisplay.scrollHeight;
+
+                  // Update device information
+                  updateDeviceInfo('unknown', 'Unknown');
+
+                  waitingForVersionResponse = false;
+                }
+              }, 500);
+            } catch (error) {
+              console.error('Resend Error:', error);
+            }
+          }
+        }
+      }, 500);
+    }
+
+    // Power ON response check function
+    function checkPowerOnResponse(data) {
+      // Add data to buffer
+      const newBuffer = new Uint8Array(receivedBuffer.length + data.length);
+      newBuffer.set(receivedBuffer);
+      newBuffer.set(data, receivedBuffer.length);
+      receivedBuffer = newBuffer;
+
+      // Check 4-byte response pattern: {0xAF, 0x02, 0x52, 0xFF}
+      if (receivedBuffer.length >= 4) {
+        if (receivedBuffer[0] === 0xAF &&
+          receivedBuffer[1] === 0x02 &&
+          receivedBuffer[2] === 0x52 &&
+          receivedBuffer[3] === 0xFF) {
+          // Process when Power ON response is received
+          const timestamp = new Date().toLocaleTimeString();
+          const message = `[${timestamp}] Power ON Response Received\n`;
+          dataDisplay.textContent += message;
+          dataDisplay.scrollTop = dataDisplay.scrollHeight;
+        }
+
+        // Clear buffer (remove processed data)
+        receivedBuffer = new Uint8Array(0);
+      }
+    }
+
+    // Device information update function
+    function updateDeviceInfo(model, version) {
+      // Update device information display in top right
+      updateDeviceInfoDisplay(model, version);
+    }
+
+    // Device information display update function (top right)
+    function updateDeviceInfoDisplay(model, version) {
+      const deviceInfoDisplay = document.getElementById('device-info-display');
+      const modelElement = deviceInfoDisplay.querySelector('.model');
+      const versionElement = deviceInfoDisplay.querySelector('.version');
+
+      if (model === 'CR2') {
+        modelElement.textContent = 'Model: CR2';
+        versionElement.textContent = `Version: ${version}`;
+        deviceInfoDisplay.style.color = '#0075B8';
+      } else {
+        modelElement.textContent = 'Model: Unknown';
+        versionElement.textContent = 'Version: Unknown';
+        deviceInfoDisplay.style.color = '#0075B8';
+      }
+    }
+
+    // 5-byte response check function (for version verification)
+    function checkVersionResponse(data) {
+      // Add data to buffer
+      const newBuffer = new Uint8Array(receivedBuffer.length + data.length);
+      newBuffer.set(receivedBuffer);
+      newBuffer.set(data, receivedBuffer.length);
+      receivedBuffer = newBuffer;
+
+      // Check 5-byte response pattern
+      if (receivedBuffer.length >= 5) {
+        if (waitingForVersionResponse) {
+          // Process when version response is received
+          const timestamp = new Date().toLocaleTimeString();
+          const message1 = `[${timestamp}] Model CR2\n`;
+          dataDisplay.textContent += message1;
+
+          // Display version information (3rd byte: major, 4th byte: minor)
+          const majorVersion = receivedBuffer[2];
+          const minorVersion = receivedBuffer[3];
+          const versionString = `${majorVersion}.${minorVersion.toString().padStart(2, '0')}`;
+          const message2 = `[${timestamp}] Version: ${versionString}\n`;
+          dataDisplay.textContent += message2;
+          dataDisplay.scrollTop = dataDisplay.scrollHeight;
+
+          // Update device information
+          deviceModel = 'CR2';
+          updateDeviceInfo('CR2', versionString);
+
+          // Clear timeout
+          if (versionResponseTimeout) {
+            clearTimeout(versionResponseTimeout);
+            versionResponseTimeout = null;
+          }
+          waitingForVersionResponse = false;
+        }
+
+        // Clear buffer (remove processed data)
+        receivedBuffer = new Uint8Array(0);
+        // speedProfileBuffer = new Uint8Array(0); // Prevent clearing during speed profile processing
+      }
+    }
+
+    // Data received processing
+    async function startReading() {
+      while (port.readable && keepReading) {
+        reader = port.readable.getReader();
+        try {
+          while (true) {
+            const { value, done } = await reader.read();
+            if (done) {
+              reader.releaseLock();
+              break;
+            }
+
+            if (value) {
+              displayData(value);
+              checkPowerOnResponse(value);
+              checkVersionResponse(value);
+              checkSpeedProfileResponse(value);
+              checkMotorStatusResponse(value);
+            }
+          }
+        } catch (error) {
+          console.error('Received Error:', error);
+        } finally {
+          reader.releaseLock();
+        }
+      }
+    }
+
+    // Connection/disconnection processing
+    async function connectSerial() {
+      try {
+        port = await navigator.serial.requestPort({});
+        await port.open({ baudRate: 38400 });
+
+        isConnected = true;
+        updateConnectionUI(true);
+        
+        powerOnButton.disabled = false;
+        powerOffButton.disabled = false; // Always enabled
+        getSpeedProfilesButton.disabled = false;
+        setSpeedProfilesButton.disabled = false;
+        sendSetPowerButton.disabled = false;
+        sendStartSendingDataButton.disabled = false;
+        sendStopSendingDataButton.disabled = false;
+        sendSetJoystickButton.disabled = false;
+        sendSetJoystickContinuousButton.disabled = false;
+        sendSetSpeedProfileButton.disabled = false;
+        sendSetBatterySavingButton.disabled = false;
+        sendSetVelocityButton.disabled = false;
+        sendSetVelocityContinuousButton.disabled = false;
+        
+        // Enable buttons for basic function tab as well
+        mainStartSendingDataButton.disabled = false;
+        mainStopSendingDataButton.disabled = false;
+        keepReading = true;
+
+        // Reset device information
+        updateDeviceInfo('unknown', 'Unknown');
+
+        // Disable speed profile input fields
+        setSpeedProfileInputsEditable(false);
+        speedProfilesRetrieved = false;
+
+        // Start receiving
+        startReading();
+
+      } catch (error) {
+        console.error('Connection Error:', error);
+        alert('Connection failed. Please check the device.');
+      }
+    }
+
+    async function disconnectSerial() {
+      try {
+        // Update UI immediately first
+        isConnected = false;
+        updateConnectionUI(false);
+        
+        powerOnButton.disabled = true;
+        powerOffButton.disabled = true;
+        getSpeedProfilesButton.disabled = true;
+        setSpeedProfilesButton.disabled = true;
+        sendSetPowerButton.disabled = true;
+        sendStartSendingDataButton.disabled = true;
+        sendStopSendingDataButton.disabled = true;
+        sendSetJoystickButton.disabled = true;
+        sendSetJoystickContinuousButton.disabled = true;
+        stopJoystickContinuousSending();
+        sendSetSpeedProfileButton.disabled = true;
+        sendSetBatterySavingButton.disabled = true;
+        sendSetVelocityButton.disabled = true;
+        sendSetVelocityContinuousButton.disabled = true;
+        stopVelocityContinuousSending();
+
+        // Reset device information
+        updateDeviceInfo('unknown', 'Unknown');
+
+        // Disable speed profile input fields
+        setSpeedProfileInputsEditable(false);
+        speedProfilesRetrieved = false;
+
+        // Clear version response waiting
+        if (versionResponseTimeout) {
+          clearTimeout(versionResponseTimeout);
+          versionResponseTimeout = null;
+        }
+        waitingForVersionResponse = false;
+
+        // Clear speed profile related (not cleared here to support split received data)
+        // speedProfileBuffer = new Uint8Array(0);
+        
+        // Clear motor status buffer
+        motorStatusBuffer = new Uint8Array(0);
+
+        // Stop joystick sending
+        stopJoystickInterval();
+
+        // Clear sent/received data log
+        dataDisplay.textContent = '';
+        speedProfileDataDisplay.textContent = '';
+        customCommandDataDisplay.textContent = '';
+
+        // Return tab to initial position (main function tab)
+        switchTab('main');
+
+        // Stop receiving loop
+        keepReading = false;
+
+        // Cancel reader
+        if (reader) {
+          await reader.cancel();
+          reader.releaseLock();
+          reader = undefined;
+        }
+
+        // Close port
+        if (port) {
+          await port.close();
+          port = undefined;
+        }
+
+      } catch (error) {
+        console.error('Disconnection Error:', error);
+        // Even if error occurs, UI is already updated, so leave it as is
+      }
+    }
+
+    // Web Serial API support check
+    if ('serial' in navigator) {
+      // Disable buttons in initial state
+        powerOnButton.disabled = true;
+        powerOffButton.disabled = true;
+        getSpeedProfilesButton.disabled = true;
+        setSpeedProfilesButton.disabled = true;
+        sendSetPowerButton.disabled = true;
+        sendStartSendingDataButton.disabled = true;
+        sendStopSendingDataButton.disabled = true;
+        sendSetJoystickButton.disabled = true;
+        sendSetJoystickContinuousButton.disabled = true;
+        sendSetSpeedProfileButton.disabled = true;
+        sendSetBatterySavingButton.disabled = true;
+        sendSetVelocityButton.disabled = true;
+        sendSetVelocityContinuousButton.disabled = true;
+        
+        // Disable buttons for basic function tab as well
+        mainStartSendingDataButton.disabled = true;
+        mainStopSendingDataButton.disabled = true;
+
+      // Initial connection button event listener
+      initialConnectButton.addEventListener('click', async () => {
+        // Temporarily disable button to prevent duplicate clicks
+        initialConnectButton.disabled = true;
+
+        try {
+          await connectSerial();
+        } catch (error) {
+          console.error('Connection Error:', error);
+        } finally {
+          // Re-enable button after processing is complete
+          initialConnectButton.disabled = false;
+        }
+      });
+
+      // Disconnect button event listener
+      disconnectButton.addEventListener('click', async () => {
+        // Temporarily disable button to prevent duplicate clicks
+        disconnectButton.disabled = true;
+
+        try {
+          await disconnectSerial();
+        } catch (error) {
+          console.error('Disconnection Error:', error);
+        } finally {
+          // Re-enable button after processing is complete
+          disconnectButton.disabled = false;
+        }
+      });
+      
+      initialConnectButton.disabled = false;
+      disconnectButton.disabled = false;
+    } else {
+      alert('Your browser is not supported. Please use Chrome or Edge.');
+    }
+
+    // Joystick function
+    function initJoystick() {
+      let isActive = false;
+      let startX, startY;
+      let centerX, centerY;
+      let radius;
+
+      function updateKnobPosition(x, y) {
+        const dx = x - centerX;
+        const dy = y - centerY;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        let finalX, finalY;
+
+        if (distance > radius) {
+          const angle = Math.atan2(dy, dx);
+          finalX = centerX + radius * Math.cos(angle);
+          finalY = centerY + radius * Math.sin(angle);
+        } else {
+          finalX = x;
+          finalY = y;
+        }
+
+        const normalizedX = (finalX - centerX) / radius;
+        const normalizedY = (finalY - centerY) / radius;
+
+        // Convert to relative coordinates based on joystick element
+        const joystickRect = joystick.getBoundingClientRect();
+        const relativeX = finalX - joystickRect.left;
+        const relativeY = finalY - joystickRect.top;
+
+        knob.style.left = relativeX + 'px';
+        knob.style.top = relativeY + 'px';
+        knob.style.transform = 'translate(-50%, -50%)';
+
+        // 値を更新（安全のため実際の1/10の値とする）
+        const xValue = Math.round(normalizedX * 10);
+        const yValue = Math.round(-normalizedY * 10); // Invert Y axis
+
+        joystickData = { x: xValue, y: yValue };
+        joystickValues.textContent = `X: ${xValue}, Y: ${yValue}`;
+      }
+
+      function getJoystickCenter() {
+        const rect = joystick.getBoundingClientRect();
+        centerX = rect.left + rect.width / 2;
+        centerY = rect.top + rect.height / 2;
+        radius = rect.width / 2 - 20; // Consider knob radius
+      }
+
+      function handleStart(e) {
+        e.preventDefault();
+        isActive = true;
+        joystickActive = true;
+        getJoystickCenter();
+
+        const touch = e.type === 'touchstart' ? e.touches[0] : e;
+        startX = touch.clientX;
+        startY = touch.clientY;
+
+        // Start sending joystick data at 100ms intervals
+        startJoystickInterval();
+      }
+
+      function handleMove(e) {
+        if (!isActive) return;
+        e.preventDefault();
+
+        const touch = e.type === 'touchmove' ? e.touches[0] : e;
+        updateKnobPosition(touch.clientX, touch.clientY);
+      }
+
+      function handleEnd(e) {
+        if (!isActive) return;
+        e.preventDefault();
+        isActive = false;
+        joystickActive = false;
+
+        // Return knob to center
+        knob.style.left = '50%';
+        knob.style.top = '50%';
+        knob.style.transform = 'translate(-50%, -50%)';
+
+        // Reset values
+        joystickData = { x: 0, y: 0 };
+        joystickValues.textContent = 'X: 0, Y: 0';
+
+        // Stop 100ms interval sending
+        stopJoystickInterval();
+
+        // Send final data
+        if (port && port.writable) {
+          sendJoystickData();
+        }
+      }
+
+      // Mouse events
+      knob.addEventListener('mousedown', handleStart);
+      document.addEventListener('mousemove', handleMove);
+      document.addEventListener('mouseup', handleEnd);
+
+      // Touch events
+      knob.addEventListener('touchstart', handleStart);
+      document.addEventListener('touchmove', handleMove);
+      document.addEventListener('touchend', handleEnd);
+    }
+
+    // Start 100ms interval sending
+    function startJoystickInterval() {
+      if (joystickInterval) {
+        clearInterval(joystickInterval);
+      }
+      joystickInterval = setInterval(() => {
+        if (joystickActive && port && port.writable) {
+          sendJoystickData();
+        }
+      }, 100);
+    }
+
+    // Stop 100ms interval sending
+    function stopJoystickInterval() {
+      if (joystickInterval) {
+        clearInterval(joystickInterval);
+        joystickInterval = null;
+      }
+    }
+
+    // Joystick data send function
+    async function sendJoystickData() {
+      if (!port || !port.writable) return;
+
+      try {
+        // Convert joystick data to byte array
+        // 5th byte: Joystick Y value (-100 to 100)
+        // 6th byte: Joystick X value (-100 to 100)
+        const yValue = Math.max(-100, Math.min(100, joystickData.y));
+        const xValue = Math.max(-100, Math.min(100, joystickData.x));
+
+        // Calculate checksum (XOR from first byte)
+        const header = [0xAF, 0x05, 0x03, 0x00];
+        const data = [yValue, xValue];
+        let checksum = 0;
+
+        // Calculate XOR of header and data
+        [...header, ...data].forEach(byte => {
+          checksum ^= byte;
+        });
+
+        const joystickCommand = new Uint8Array([
+          0xAF, 0x05, 0x03, 0x00, // Header
+          yValue, xValue,         // Joystick data
+          checksum                // Checksum
+        ]);
+
+        const writer = port.writable.getWriter();
+        await writer.write(joystickCommand);
+        writer.releaseLock();
+
+        const timestamp = new Date().toLocaleTimeString();
+        const hexData = Array.from(joystickCommand).map(byte => '0x' + byte.toString(16).toUpperCase().padStart(2, '0')).join(' ');
+        const message = `[${timestamp}] Joystick Send: ${hexData}\n`;
+        dataDisplay.textContent += message;
+        dataDisplay.scrollTop = dataDisplay.scrollHeight;
+
+      } catch (error) {
+        console.error('Joystick Send Error:', error);
+      }
+    }
+
+    // Device information display click handler (manually retrieve device information)
+    const deviceInfoDisplay = document.getElementById('device-info-display');
+    deviceInfoDisplay.addEventListener('click', async () => {
+      if (port && port.writable) {
+        try {
+          await getDeviceInfo();
+        } catch (error) {
+          console.error('Manual Device Information Retrieval Error:', error);
+        }
+      } else {
+        alert('Device is not connected.');
+      }
+    });
+
+    // Speed profile retrieval button handler
+    getSpeedProfilesButton.addEventListener('click', async () => {
+      if (port && port.writable && !isGettingSpeedProfiles) {
+        await getAllSpeedProfiles();
+      }
+    });
+
+    // Speed profile cancel button handler
+    cancelSpeedProfilesButton.addEventListener('click', () => {
+      if (isGettingSpeedProfiles) {
+        isCancellingSpeedProfiles = true;
+        speedProfilesStatus.textContent = 'Cancelling...';
+        speedProfilesStatus.className = 'speed-profile-status speed-profile-loading';
+      }
+    });
+
+    // Speed profile setting button handler
+    setSpeedProfilesButton.addEventListener('click', async () => {
+      if (port && port.writable) {
+        if (!speedProfilesRetrieved) {
+          alert('Please retrieve speed profiles first.');
+          return;
+        }
+        await setAllSpeedProfiles();
+      }
+    });
+
+    // All speed profile retrieval function
+    async function getAllSpeedProfiles() {
+      if (isGettingSpeedProfiles) return;
+
+      isGettingSpeedProfiles = true;
+      isCancellingSpeedProfiles = false;
+      speedProfiles = [];
+      currentSpeedMode = 0;
+      getSpeedProfilesButton.disabled = true;
+      setSpeedProfilesButton.disabled = true;
+      cancelSpeedProfilesButton.style.display = 'inline-block';
+      
+      // Clear speed profile dedicated buffer (only at start of overall processing)
+      // speedProfileBuffer = new Uint8Array(0);
+      speedProfilesStatus.textContent = 'Retrieving...';
+      speedProfilesStatus.className = 'speed-profile-status speed-profile-loading';
+
+      try {
+        // Sequentially retrieve Speed Mode 0-5
+        for (let mode = 0; mode <= 5; mode++) {
+          // Cancel check
+          if (isCancellingSpeedProfiles) {
+            // Send data send stop command
+            const stopCommand = new Uint8Array([0xAF, 0x02, 0x01, 0xAC]);
+            const stopWriter = port.writable.getWriter();
+            await stopWriter.write(stopCommand);
+            stopWriter.releaseLock();
+
+            const stopTimestamp = new Date().toLocaleTimeString();
+            const stopHexData = Array.from(stopCommand).map(byte => '0x' + byte.toString(16).toUpperCase().padStart(2, '0')).join(' ');
+            const stopMessage = `[${stopTimestamp}] Speed Profile Stop Send (Cancelled): ${stopHexData}\n`;
+            dataDisplay.textContent += stopMessage;
+            speedProfileDataDisplay.textContent += stopMessage;
+            dataDisplay.scrollTop = dataDisplay.scrollHeight;
+            speedProfileDataDisplay.scrollTop = speedProfileDataDisplay.scrollHeight;
+
+            speedProfilesStatus.textContent = 'Retrieving Stopped';
+            speedProfilesStatus.className = 'speed-profile-status speed-profile-error';
+            return;
+          }
+          
+          currentSpeedMode = mode;
+          speedProfilesStatus.textContent = `Speed Mode ${mode} Retrieving...`;
+          
+          await getSpeedProfile(mode);
+          
+          // Wait a bit before proceeding to next mode (100ms for CR2 model, 2700ms for others)
+          const waitTime = deviceModel === 'CR2' ? 100 : 2700;
+          await new Promise(resolve => setTimeout(resolve, waitTime));
+        }
+
+        // Processing after overall completion
+        // Stop data sending (stop last mode)
+        const finalStopCommand = new Uint8Array([0xAF, 0x02, 0x01, 0xAC]);
+        const finalStopWriter = port.writable.getWriter();
+        await finalStopWriter.write(finalStopCommand);
+        finalStopWriter.releaseLock();
+
+        const finalStopTimestamp = new Date().toLocaleTimeString();
+        const finalStopHexData = Array.from(finalStopCommand).map(byte => '0x' + byte.toString(16).toUpperCase().padStart(2, '0')).join(' ');
+        const finalStopMessage = `[${finalStopTimestamp}] Speed Profile Stop Send(Final): ${finalStopHexData}\n`;
+        dataDisplay.textContent += finalStopMessage;
+        speedProfileDataDisplay.textContent += finalStopMessage;
+        dataDisplay.scrollTop = dataDisplay.scrollHeight;
+        speedProfileDataDisplay.scrollTop = speedProfileDataDisplay.scrollHeight;
+
+        // Clear buffer (overall cleanup)
+        speedProfileBuffer = new Uint8Array(0);
+
+        // Enable speed profile input fields
+        setSpeedProfileInputsEditable(true);
+        speedProfilesRetrieved = true;
+
+        speedProfilesStatus.textContent = 'Retrieval Complete';
+        speedProfilesStatus.className = 'speed-profile-status speed-profile-success';
+      } catch (error) {
+        console.error('Speed Profile Retrieval Error:', error);
+        speedProfilesStatus.textContent = 'Retrieval Error';
+        speedProfilesStatus.className = 'speed-profile-status speed-profile-error';
+      } finally {
+        isGettingSpeedProfiles = false;
+        isCancellingSpeedProfiles = false;
+        getSpeedProfilesButton.disabled = false;
+        setSpeedProfilesButton.disabled = false;
+        cancelSpeedProfilesButton.style.display = 'none';
+      }
+    }
+
+    // Individual speed profile retrieval function (new sequence)
+    async function getSpeedProfile(speedMode) {
+      return new Promise(async (resolve, reject) => {
+        try {
+          // 1. Stop data sending (stop previous mode) - Execute for Speed Mode other than 0
+          if (speedMode > 0) {
+            const stopCommand = new Uint8Array([0xAF, 0x02, 0x01, 0xAC]);
+            const stopWriter = port.writable.getWriter();
+            await stopWriter.write(stopCommand);
+            stopWriter.releaseLock();
+
+            const stopTimestamp = new Date().toLocaleTimeString();
+            const stopHexData = Array.from(stopCommand).map(byte => '0x' + byte.toString(16).toUpperCase().padStart(2, '0')).join(' ');
+            const stopMessage = `[${stopTimestamp}] Speed Profile Stop Send: ${stopHexData}\n`;
+            dataDisplay.textContent += stopMessage;
+            speedProfileDataDisplay.textContent += stopMessage;
+            dataDisplay.scrollTop = dataDisplay.scrollHeight;
+            speedProfileDataDisplay.scrollTop = speedProfileDataDisplay.scrollHeight;
+          }
+
+          // 2. Clear buffer (remove remaining data from previous mode) - Not cleared here to support split received data
+          // speedProfileBuffer = new Uint8Array(0);
+
+          // 3. Wait 100ms (stabilization)
+          await new Promise(resolve => setTimeout(resolve, 100));
+
+          // 4. Start data sending (start retrieval of new mode)
+          const checksum = 0xAF ^ 0x06 ^ 0x00 ^ 0x00 ^ 0x0B ^ 0xB8 ^ speedMode;
+          const getCommand = new Uint8Array([0xAF, 0x06, 0x00, 0x00, 0x0B, 0xB8, speedMode, checksum]);
+          
+          const writer = port.writable.getWriter();
+          await writer.write(getCommand);
+          writer.releaseLock();
+
+          const timestamp = new Date().toLocaleTimeString();
+          const hexData = Array.from(getCommand).map(byte => '0x' + byte.toString(16).toUpperCase().padStart(2, '0')).join(' ');
+          const message = `[${timestamp}] Speed Profile Retrieval Send: ${hexData}\n`;
+          dataDisplay.textContent += message;
+          speedProfileDataDisplay.textContent += message;
+          dataDisplay.scrollTop = dataDisplay.scrollHeight;
+          speedProfileDataDisplay.scrollTop = speedProfileDataDisplay.scrollHeight;
+
+          // 5. Parse (process received data) - Wait 300ms (parsing time)
+          await new Promise(resolve => setTimeout(resolve, 300));
+
+          resolve();
+        } catch (error) {
+          reject(error);
+        }
+      });
+    }
+
+    // Speed profile response check function
+    function checkSpeedProfileResponse(data) {
+      // Add data to speed profile dedicated buffer
+      const oldBufferLength = speedProfileBuffer.length;
+      const newBuffer = new Uint8Array(oldBufferLength + data.length);
+      newBuffer.set(speedProfileBuffer);
+      newBuffer.set(data, oldBufferLength);
+      speedProfileBuffer = newBuffer;
+
+      // Process complete 14-byte message
+      while (speedProfileBuffer.length >= 14) {
+        // Check header (0xAF, 0x0C, 0x00)
+        if (speedProfileBuffer[0] === 0xAF && speedProfileBuffer[1] === 0x0C && speedProfileBuffer[2] === 0x00) {
+          // Parse speed profile information
+          const speedMode = speedProfileBuffer[3];
+          const fM1 = speedProfileBuffer[4];
+          const fA1 = speedProfileBuffer[5];
+          const fD1 = speedProfileBuffer[6];
+          const rM1 = speedProfileBuffer[7];
+          const rA1 = speedProfileBuffer[8];
+          const rD1 = speedProfileBuffer[9];
+          const tM1 = speedProfileBuffer[10];
+          const tA1 = speedProfileBuffer[11];
+          const tD1 = speedProfileBuffer[12];
+          const checksum = speedProfileBuffer[13];
+
+          // Save speed profile information
+          speedProfiles[speedMode] = {
+            speedMode, fM1, fA1, fD1, rM1, rA1, rD1, tM1, tA1, tD1
+          };
+
+          // Update UI
+          updateSpeedProfileDisplay(speedMode);
+
+          const completeTimestamp = new Date().toLocaleTimeString();
+          const message = `[${completeTimestamp}] Speed Mode ${speedMode} Profile Received Complete\n`;
+          dataDisplay.textContent += message;
+          speedProfileDataDisplay.textContent += message;
+          dataDisplay.scrollTop = dataDisplay.scrollHeight;
+          speedProfileDataDisplay.scrollTop = speedProfileDataDisplay.scrollHeight;
+
+          // Remove processed 14 bytes
+          speedProfileBuffer = speedProfileBuffer.slice(14);
+        } else {
+          // If header doesn't match, search for header
+          let headerFound = false;
+          for (let i = 0; i < speedProfileBuffer.length - 2; i++) {
+            if (speedProfileBuffer[i] === 0xAF && speedProfileBuffer[i + 1] === 0x0C && speedProfileBuffer[i + 2] === 0x00) {
+              // If header found, rebuild buffer from that position
+              speedProfileBuffer = speedProfileBuffer.slice(i);
+              headerFound = true;
+              break;
+            }
+          }
+          
+          // If header not found, remove first 1 byte
+          if (!headerFound) {
+            speedProfileBuffer = speedProfileBuffer.slice(1);
+          }
+        }
+      }
+    }
+
+    // Motor status response check function
+    function checkMotorStatusResponse(data) {
+      // Add data to motor status dedicated buffer
+      const oldBufferLength = motorStatusBuffer.length;
+      const newBuffer = new Uint8Array(oldBufferLength + data.length);
+      newBuffer.set(motorStatusBuffer);
+      newBuffer.set(data, oldBufferLength);
+      motorStatusBuffer = newBuffer;
+
+      // Debug: Output buffer contents to console
+      if (motorStatusBuffer.length > 0) {
+        console.log('Motor status buffer:', Array.from(motorStatusBuffer).map(b => '0x' + b.toString(16).toUpperCase()).join(' '));
+      }
+
+      // Search for header and process complete message
+      let processedBytes = 0;
+      while (motorStatusBuffer.length - processedBytes >= 3) {
+        // Check header (0xAF, 0x1F, 0x01) - Dataset number 1
+        if (motorStatusBuffer[processedBytes] === 0xAF && 
+            motorStatusBuffer[processedBytes + 1] === 0x1F && 
+            motorStatusBuffer[processedBytes + 2] === 0x01) {
+          
+          console.log('Motor status header detected:', processedBytes);
+          
+          // Confirm data length (from received log, 29 bytes of data after header)
+          const expectedLength = 32; // Header 3 bytes + data 29 bytes
+          if (motorStatusBuffer.length - processedBytes >= expectedLength) {
+            // Parse motor status information (skip header 3 bytes)
+            const dataStart = processedBytes + 3;
+            const battery = motorStatusBuffer[dataStart];           // Battery saving level（4th Byte: 0x13）
+            const buzzer = motorStatusBuffer[dataStart + 1];        // Buzzer setting（5th Byte: 0x01）
+            // Ignore 6-15th bytes
+            const joystickForward = motorStatusBuffer[dataStart + 12];  // Joystick (Forward/Backward Direction) (16th Byte: 0x56)
+            const joystickTurn = motorStatusBuffer[dataStart + 13];     // Joystick (Left/Right Turn Direction) (17th Byte: 0x00)
+            const batteryLevel = motorStatusBuffer[dataStart + 14];     // Battery level (18th Byte: 0x05)
+            const batteryCurrent = ((motorStatusBuffer[dataStart + 15] << 8) | motorStatusBuffer[dataStart + 16]) << 16 >> 16; // Battery current (19-20th bytes: 0xFD 0xFE)
+            // Process as signed 16-bit integer
+            const motorAngleRight = ((motorStatusBuffer[dataStart + 17] << 8) | motorStatusBuffer[dataStart + 18]) << 16 >> 16; // Motor angle (right) (21-22nd bytes)
+            const motorAngleLeft = ((motorStatusBuffer[dataStart + 19] << 8) | motorStatusBuffer[dataStart + 20]) << 16 >> 16;  // Motor angle (left) (23-24th Byte)
+            const motorSpeedRight = ((motorStatusBuffer[dataStart + 21] << 8) | motorStatusBuffer[dataStart + 22]) << 16 >> 16; // Motor speed (right) (25-26th Byte)
+            const motorSpeedLeft = ((motorStatusBuffer[dataStart + 23] << 8) | motorStatusBuffer[dataStart + 24]) << 16 >> 16;  // Motor speed (left) (27-28th Byte)
+            const power = motorStatusBuffer[dataStart + 25];            // Power (29th byte: 0x00)
+            const speedMode = motorStatusBuffer[dataStart + 26];        // Speed mode number (30th byte: 0x00)
+            const errorCode = motorStatusBuffer[dataStart + 27];        // Error code (31st byte: 0x59)
+            const angleCounter = motorStatusBuffer[dataStart + 28];     // Angle detection counter (32nd byte: 0xAC)
+
+            // Debug: Output received data to console
+            console.log('Motor status data received:', {
+              battery, buzzer, joystickForward, joystickTurn, batteryLevel,
+              batteryCurrent, motorAngleRight, motorAngleLeft, motorSpeedRight, motorSpeedLeft,
+              power, speedMode, errorCode, angleCounter
+            });
+
+            // Update UI
+            updateMotorStatusDisplay({
+              battery, buzzer, joystickForward, joystickTurn, batteryLevel,
+              batteryCurrent, motorAngleRight, motorAngleLeft, motorSpeedRight, motorSpeedLeft,
+              power, speedMode, errorCode, angleCounter
+            });
+
+            const completeTimestamp = new Date().toLocaleTimeString();
+            const message = `[${completeTimestamp}] Motor Status Received Complete\n`;
+            dataDisplay.textContent += message;
+            speedProfileDataDisplay.textContent += message;
+            dataDisplay.scrollTop = dataDisplay.scrollHeight;
+            speedProfileDataDisplay.scrollTop = speedProfileDataDisplay.scrollHeight;
+
+            // Remove processed 32 bytes
+            processedBytes += expectedLength;
+          } else {
+            // If data is incomplete, wait for next data
+            break;
+          }
+        } else {
+          // If header doesn't match, check next byte
+          processedBytes++;
+        }
+      }
+      
+      // Remove processed data from buffer
+      if (processedBytes > 0) {
+        motorStatusBuffer = motorStatusBuffer.slice(processedBytes);
+      }
+    }
+
+    // Speed profile input field edit control function
+    function setSpeedProfileInputsEditable(editable) {
+      const inputFields = [
+        'f-m1', 'f-a1', 'f-d1', 'r-m1', 'r-a1', 'r-d1', 't-m1', 't-a1', 't-d1'
+      ];
+      
+      for (let mode = 0; mode <= 5; mode++) {
+        inputFields.forEach(field => {
+          const input = document.getElementById(`${field}-${mode}`);
+          if (input) {
+            input.disabled = !editable;
+            if (!editable) {
+              input.style.backgroundColor = '#f8f9fa';
+              input.style.color = '#6c757d';
+            } else {
+              input.style.backgroundColor = 'white';
+              input.style.color = '#000000';
+            }
+          }
+        });
+      }
+    }
+
+    // Speed profile display update function
+    function updateSpeedProfileDisplay(speedMode) {
+      const profile = speedProfiles[speedMode];
+      if (!profile) return;
+
+      // Update each element
+      document.getElementById(`f-m1-${speedMode}`).value = profile.fM1;
+      document.getElementById(`f-a1-${speedMode}`).value = profile.fA1;
+      document.getElementById(`f-d1-${speedMode}`).value = profile.fD1;
+      document.getElementById(`r-m1-${speedMode}`).value = profile.rM1;
+      document.getElementById(`r-a1-${speedMode}`).value = profile.rA1;
+      document.getElementById(`r-d1-${speedMode}`).value = profile.rD1;
+      document.getElementById(`t-m1-${speedMode}`).value = profile.tM1;
+      document.getElementById(`t-a1-${speedMode}`).value = profile.tA1;
+      document.getElementById(`t-d1-${speedMode}`).value = profile.tD1;
+    }
+
+    // Motor status display update function
+    function updateMotorStatusDisplay(status) {
+      const timestamp = new Date().toLocaleTimeString();
+      
+      // Update three motor status displays
+      const displayIds = ['', '-velocity', '-start-sending'];
+      
+      // Also update motor status display for basic function tab
+      updateMainMotorStatusDisplay(status);
+      
+      displayIds.forEach(suffix => {
+        // Battery information
+        document.getElementById(`battery-status${suffix}`).textContent = `${status.battery}%`;
+        document.getElementById(`battery-level${suffix}`).textContent = `${status.batteryLevel}%`;
+        document.getElementById(`battery-current${suffix}`).textContent = `${(status.batteryCurrent * 2).toFixed(1)}mA`;
+
+        // Joystick Information (displayed as signed 1-byte data)
+        const joystickForwardSigned = status.joystickForward > 127 ? status.joystickForward - 256 : status.joystickForward;
+        const joystickTurnSigned = status.joystickTurn > 127 ? status.joystickTurn - 256 : status.joystickTurn;
+        document.getElementById(`joystick-forward${suffix}`).textContent = joystickForwardSigned;
+        document.getElementById(`joystick-turn${suffix}`).textContent = joystickTurnSigned;
+
+        // Motor angle information (0.001rad unit)
+        document.getElementById(`motor-angle-right${suffix}`).textContent = `${(status.motorAngleRight * 0.001).toFixed(3)}rad`;
+        document.getElementById(`motor-angle-left${suffix}`).textContent = `${(status.motorAngleLeft * 0.001).toFixed(3)}rad`;
+
+        // Motor speed information (0.004km/h unit)
+        document.getElementById(`motor-speed-right${suffix}`).textContent = `${(status.motorSpeedRight * 0.004).toFixed(3)}km/h`;
+        document.getElementById(`motor-speed-left${suffix}`).textContent = `${(status.motorSpeedLeft * 0.004).toFixed(3)}km/h`;
+
+        // System status information
+        document.getElementById(`power-status${suffix}`).textContent = status.power ? 'ON' : 'OFF';
+        // Speed mode display conversion (0→1, 1→2, 2→3, 3→4, others→-)
+        let speedModeDisplay = '-';
+        if (status.speedMode === 0) speedModeDisplay = '1';
+        else if (status.speedMode === 1) speedModeDisplay = '2';
+        else if (status.speedMode === 2) speedModeDisplay = '3';
+        else if (status.speedMode === 3) speedModeDisplay = '4';
+        document.getElementById(`speed-mode${suffix}`).textContent = speedModeDisplay;
+        document.getElementById(`error-code${suffix}`).textContent = status.errorCode || 'None';
+        document.getElementById(`angle-counter${suffix}`).textContent = status.angleCounter;
+
+        // Buzzer information (moved to battery information group)
+        document.getElementById(`buzzer-status${suffix}`).textContent = status.buzzer ? 'ON' : 'OFF';
+
+        // Change color according to error code
+        const errorElement = document.getElementById(`error-code${suffix}`);
+        if (status.errorCode && status.errorCode !== 0) {
+          errorElement.style.color = '#dc3545';
+          errorElement.style.fontWeight = 'bold';
+        } else {
+          errorElement.style.color = '#000';
+          errorElement.style.fontWeight = 'normal';
+        }
+
+        // Change color according to battery level
+        const batteryLevelElement = document.getElementById(`battery-level${suffix}`);
+        if (status.batteryLevel < 20) {
+          batteryLevelElement.style.color = '#dc3545';
+        } else if (status.batteryLevel < 50) {
+          batteryLevelElement.style.color = '#ffc107';
+        } else {
+          batteryLevelElement.style.color = '#28a745';
+        }
+      });
+    }
+
+    // All speed profile setting function
+    async function setAllSpeedProfiles() {
+      setSpeedProfilesButton.disabled = true;
+      speedProfilesStatus.textContent = 'Setting...';
+      speedProfilesStatus.className = 'speed-profile-status speed-profile-loading';
+
+      try {
+        // Sequentially set Speed Mode 0-5
+        for (let mode = 0; mode <= 5; mode++) {
+          speedProfilesStatus.textContent = `Speed Mode ${mode} Setting...`;
+          
+          await setSpeedProfile(mode);
+          
+          // Wait 150ms before proceeding to next mode
+          await new Promise(resolve => setTimeout(resolve, 150));
+        }
+
+        speedProfilesStatus.textContent = 'Setting Complete';
+        speedProfilesStatus.className = 'speed-profile-status speed-profile-success';
+      } catch (error) {
+        console.error('Speed Profile Setting Error:', error);
+        speedProfilesStatus.textContent = 'Setting Error';
+        speedProfilesStatus.className = 'speed-profile-status speed-profile-error';
+      } finally {
+        setSpeedProfilesButton.disabled = false;
+      }
+    }
+
+    // Individual speed profile setting function
+    async function setSpeedProfile(speedMode) {
+      try {
+        // Get speed profile information from input values
+        const fM1 = parseInt(document.getElementById(`f-m1-${speedMode}`).value) || 0;
+        const fA1 = parseInt(document.getElementById(`f-a1-${speedMode}`).value) || 0;
+        const fD1 = parseInt(document.getElementById(`f-d1-${speedMode}`).value) || 0;
+        const rM1 = parseInt(document.getElementById(`r-m1-${speedMode}`).value) || 0;
+        const rA1 = parseInt(document.getElementById(`r-a1-${speedMode}`).value) || 0;
+        const rD1 = parseInt(document.getElementById(`r-d1-${speedMode}`).value) || 0;
+        const tM1 = parseInt(document.getElementById(`t-m1-${speedMode}`).value) || 0;
+        const tA1 = parseInt(document.getElementById(`t-a1-${speedMode}`).value) || 0;
+        const tD1 = parseInt(document.getElementById(`t-d1-${speedMode}`).value) || 0;
+
+        // Calculate checksum (XOR of header + speed profile information)
+        const header = [0xAF, 0x0C, 0x04];
+        const profileData = [speedMode, fM1, fA1, fD1, rM1, rA1, rD1, tM1, tA1, tD1];
+        let checksum = 0;
+
+        // Calculate XOR of header and profile data
+        [...header, ...profileData].forEach(byte => {
+          checksum ^= byte;
+        });
+
+        // Build speed profile setting command
+        const setCommand = new Uint8Array([
+          0xAF, 0x0C, 0x04, // Header
+          speedMode, fM1, fA1, fD1, rM1, rA1, rD1, tM1, tA1, tD1, // Speed profile information
+          checksum // Checksum
+        ]);
+
+        const writer = port.writable.getWriter();
+        await writer.write(setCommand);
+        writer.releaseLock();
+
+        const timestamp = new Date().toLocaleTimeString();
+        const hexData = Array.from(setCommand).map(byte => '0x' + byte.toString(16).toUpperCase().padStart(2, '0')).join(' ');
+        const message = `[${timestamp}] Speed Profile Setting Send (Mode ${speedMode}): ${hexData}\n`;
+        dataDisplay.textContent += message;
+        speedProfileDataDisplay.textContent += message;
+        dataDisplay.scrollTop = dataDisplay.scrollHeight;
+        speedProfileDataDisplay.scrollTop = speedProfileDataDisplay.scrollHeight;
+
+      } catch (error) {
+        console.error('Speed Profile Setting Send Error:', error);
+        throw error;
+      }
+    }
+
+    // Custom command function
+    // Real-time command preview update function
+    function updateCommandPreview() {
+      const powerState = parseInt(powerStateInput.value) || 0;
+      
+      // Input value validation
+      if (powerState < 0 || powerState > 255) {
+        commandHexDisplay.textContent = 'Input value is invalid (0-255)';
+        commandHexDisplay.style.color = '#dc3545';
+        return;
+      }
+
+      // Build SET_POWER command
+      const header = [0xAF, 0x03, 0x02, powerState];
+      let checksum = 0;
+      header.forEach(byte => {
+        checksum ^= byte;
+      });
+
+      const setPowerCommand = [...header, checksum];
+      const hexData = setPowerCommand.map(byte => '0x' + byte.toString(16).toUpperCase().padStart(2, '0')).join(' ');
+      
+      commandHexDisplay.textContent = hexData;
+      commandHexDisplay.style.color = '#000000';
+    }
+
+    // Real-time preview update on input value change
+    powerStateInput.addEventListener('input', updateCommandPreview);
+
+    // START_SENDING_DATA command real-time preview update function
+    function updateStartSendingDataPreview() {
+      const dataSet = parseInt(dataSetInput.value) || 0;
+      const sendInterval = parseInt(sendIntervalInput.value) || 0;
+      const speedProfile = parseInt(speedProfileInput.value) || 0;
+      
+      // Input value validation
+      if (dataSet < 0 || dataSet > 255) {
+        startSendingDataHexDisplay.textContent = 'Data set number is invalid (0-255)';
+        startSendingDataHexDisplay.style.color = '#dc3545';
+        return;
+      }
+      if (sendInterval < 0 || sendInterval > 65535) {
+        startSendingDataHexDisplay.textContent = 'Send interval is invalid (0-65535)';
+        startSendingDataHexDisplay.style.color = '#dc3545';
+        return;
+      }
+      if (speedProfile < 0 || speedProfile > 255) {
+        startSendingDataHexDisplay.textContent = 'Speed Profile Numberis invalid (0-255)';
+        startSendingDataHexDisplay.style.color = '#dc3545';
+        return;
+      }
+
+      // Build START_SENDING_DATA command
+      // Format: 0xAF, 0x06, 0x00, [Dataset number], [Send interval high], [Send interval low], [Speed Profile Number], [Checksum]
+      const header = [0xAF, 0x06, 0x00, dataSet];
+      const intervalHigh = (sendInterval >> 8) & 0xFF; // High byte
+      const intervalLow = sendInterval & 0xFF; // Low byte
+      const data = [intervalHigh, intervalLow, speedProfile];
+      
+      let checksum = 0;
+      [...header, ...data].forEach(byte => {
+        checksum ^= byte;
+      });
+
+      const startSendingDataCommand = [...header, ...data, checksum];
+      const hexData = startSendingDataCommand.map(byte => '0x' + byte.toString(16).toUpperCase().padStart(2, '0')).join(' ');
+      
+      startSendingDataHexDisplay.textContent = hexData;
+      startSendingDataHexDisplay.style.color = '#000000';
+    }
+
+    // Real-time preview update on START_SENDING_DATA input value change
+    dataSetInput.addEventListener('input', updateStartSendingDataPreview);
+    sendIntervalInput.addEventListener('input', updateStartSendingDataPreview);
+    speedProfileInput.addEventListener('input', updateStartSendingDataPreview);
+
+    // SET_JOYSTICK command real-time preview update function
+    function updateSetJoystickPreview() {
+      const bodyPriority = parseInt(bodyPriorityInput.value) || 0;
+      const forwardBackward = parseInt(forwardBackwardInput.value) || 0;
+      const leftRight = parseInt(leftRightInput.value) || 0;
+      
+      // Input value validation
+      if (bodyPriority < 0 || bodyPriority > 255) {
+        setJoystickHexDisplay.textContent = 'Body Priorityis invalid (0-255)';
+        setJoystickHexDisplay.style.color = '#dc3545';
+        return;
+      }
+      if (forwardBackward < -128 || forwardBackward > 127) {
+        setJoystickHexDisplay.textContent = 'Forward/Backward Directionis invalid (-128-127)';
+        setJoystickHexDisplay.style.color = '#dc3545';
+        return;
+      }
+      if (leftRight < -128 || leftRight > 127) {
+        setJoystickHexDisplay.textContent = 'Left/Right Turn Directionis invalid (-128-127)';
+        setJoystickHexDisplay.style.color = '#dc3545';
+        return;
+      }
+
+      // Build SET_JOYSTICK command
+      // Format: 0xAF, 0x05, 0x03, [Body Priority], [Forward/Backward Direction], [Left/Right Turn Direction], [Checksum]
+      const header = [0xAF, 0x05, 0x03, bodyPriority];
+      const data = [forwardBackward, leftRight];
+      
+      let checksum = 0;
+      [...header, ...data].forEach(byte => {
+        checksum ^= byte;
+      });
+
+      const setJoystickCommand = [...header, ...data, checksum];
+      const hexData = setJoystickCommand.map(byte => '0x' + byte.toString(16).toUpperCase().padStart(2, '0')).join(' ');
+      
+      setJoystickHexDisplay.textContent = hexData;
+      setJoystickHexDisplay.style.color = '#000000';
+    }
+
+    // Real-time preview update on SET_JOYSTICK input value change
+    bodyPriorityInput.addEventListener('input', updateSetJoystickPreview);
+    forwardBackwardInput.addEventListener('input', updateSetJoystickPreview);
+    leftRightInput.addEventListener('input', updateSetJoystickPreview);
+
+    // SET_SPEED_PROFILE command real-time preview update function
+    function updateSetSpeedProfilePreview() {
+      const speedProfileData = [];
+      let hasError = false;
+      
+      // Get from 4th byte to 13th byte
+      for (let i = 4; i <= 13; i++) {
+        const value = parseInt(speedProfileInputs[i].value) || 0;
+        
+        // Input value validation
+        if (value < 0 || value > 255) {
+          setSpeedProfileHexDisplay.textContent = `${i}th Byte is invalid (0-255)`;
+          setSpeedProfileHexDisplay.style.color = '#dc3545';
+          hasError = true;
+          break;
+        }
+        
+        speedProfileData.push(value);
+      }
+      
+      if (hasError) return;
+
+      // Build SET_SPEED_PROFILE command
+      // Format: 0xAF, 0x0C, 0x04, [4th Byte], [5th Byte], ..., [13th byte], [Checksum]
+      const header = [0xAF, 0x0C, 0x04];
+      
+      let checksum = 0;
+      [...header, ...speedProfileData].forEach(byte => {
+        checksum ^= byte;
+      });
+
+      const setSpeedProfileCommand = [...header, ...speedProfileData, checksum];
+      const hexData = setSpeedProfileCommand.map(byte => '0x' + byte.toString(16).toUpperCase().padStart(2, '0')).join(' ');
+      
+      setSpeedProfileHexDisplay.textContent = hexData;
+      setSpeedProfileHexDisplay.style.color = '#000000';
+    }
+
+    // Real-time preview update on SET_SPEED_PROFILE input value change
+    for (let i = 4; i <= 13; i++) {
+      speedProfileInputs[i].addEventListener('input', updateSetSpeedProfilePreview);
+    }
+
+    // SET_BATTERY_SAVING command real-time preview update function
+    function updateSetBatterySavingPreview() {
+      const batteryLevel = parseInt(batteryLevelInput.value) || 0;
+      const buzzerSetting = parseInt(buzzerSettingInput.value) || 0;
+      
+      // Input value validation
+      if (batteryLevel < 0 || batteryLevel > 255) {
+        setBatterySavingHexDisplay.textContent = 'Battery saving levelis invalid (0-255)';
+        setBatterySavingHexDisplay.style.color = '#dc3545';
+        return;
+      }
+      if (buzzerSetting < 0 || buzzerSetting > 255) {
+        setBatterySavingHexDisplay.textContent = 'Buzzer settingis invalid (0-255)';
+        setBatterySavingHexDisplay.style.color = '#dc3545';
+        return;
+      }
+
+      // Build SET_BATTERY_SAVING command
+      // Format: 0xAF, 0x04, 0x06, [Battery saving level], [Buzzer setting], [Checksum]
+      const header = [0xAF, 0x04, 0x06, batteryLevel, buzzerSetting];
+      
+      let checksum = 0;
+      header.forEach(byte => {
+        checksum ^= byte;
+      });
+
+      const setBatterySavingCommand = [...header, checksum];
+      const hexData = setBatterySavingCommand.map(byte => '0x' + byte.toString(16).toUpperCase().padStart(2, '0')).join(' ');
+      
+      setBatterySavingHexDisplay.textContent = hexData;
+      setBatterySavingHexDisplay.style.color = '#000000';
+    }
+
+    // Real-time preview update on SET_BATTERY_SAVING input value change
+    batteryLevelInput.addEventListener('input', updateSetBatterySavingPreview);
+    buzzerSettingInput.addEventListener('input', updateSetBatterySavingPreview);
+
+    // SET_VELOCITY command real-time preview update function
+    function updateSetVelocityPreview() {
+      const bodyPriority = parseInt(velocityBodyPriorityInput.value) || 0;
+      const forwardBackwardVelocity = parseInt(forwardBackwardVelocityInput.value) || 0;
+      const leftRightVelocity = parseInt(leftRightVelocityInput.value) || 0;
+      
+      // Input value validation
+      if (bodyPriority < 0 || bodyPriority > 255) {
+        setVelocityHexDisplay.textContent = 'Body Priorityis invalid (0-255)';
+        setVelocityHexDisplay.style.color = '#dc3545';
+        return;
+      }
+      if (forwardBackwardVelocity < -32768 || forwardBackwardVelocity > 32767) {
+        setVelocityHexDisplay.textContent = 'Forward/Backward Directionspeedis invalid (-32768-32767)';
+        setVelocityHexDisplay.style.color = '#dc3545';
+        return;
+      }
+      if (leftRightVelocity < -32768 || leftRightVelocity > 32767) {
+        setVelocityHexDisplay.textContent = 'Left/Right Turn Directionspeedis invalid (-32768-32767)';
+        setVelocityHexDisplay.style.color = '#dc3545';
+        return;
+      }
+
+      // Build SET_VELOCITY command
+      // Format: 0xAF, 0x07, 0x08, [Body Priority], [Forward/Backward Direction speed high], [Forward/Backward Direction speed low], [Left/Right Turn Direction speed high], [Left/Right Turn Direction speed low], [Checksum]
+      const header = [0xAF, 0x07, 0x08, bodyPriority];
+      const forwardBackwardHigh = (forwardBackwardVelocity >> 8) & 0xFF; // High byte
+      const forwardBackwardLow = forwardBackwardVelocity & 0xFF; // Low byte
+      const leftRightHigh = (leftRightVelocity >> 8) & 0xFF; // High byte
+      const leftRightLow = leftRightVelocity & 0xFF; // Low byte
+      const data = [forwardBackwardHigh, forwardBackwardLow, leftRightHigh, leftRightLow];
+      
+      let checksum = 0;
+      [...header, ...data].forEach(byte => {
+        checksum ^= byte;
+      });
+
+      const setVelocityCommand = [...header, ...data, checksum];
+      const hexData = setVelocityCommand.map(byte => '0x' + byte.toString(16).toUpperCase().padStart(2, '0')).join(' ');
+      
+      setVelocityHexDisplay.textContent = hexData;
+      setVelocityHexDisplay.style.color = '#000000';
+    }
+
+    // Real-time preview update on SET_VELOCITY input value change
+    velocityBodyPriorityInput.addEventListener('input', updateSetVelocityPreview);
+    forwardBackwardVelocityInput.addEventListener('input', updateSetVelocityPreview);
+    leftRightVelocityInput.addEventListener('input', updateSetVelocityPreview);
+
+    // SET_POWERCommandSend
+    sendSetPowerButton.addEventListener('click', async () => {
+      if (port && port.writable) {
+        try {
+          const powerState = parseInt(powerStateInput.value) || 0;
+          
+          // Input value validation
+          if (powerState < 0 || powerState > 255) {
+            alert('Please enter a value between 0 and 255.');
+            return;
+          }
+
+          // Build SET_POWER command
+          // Format: 0xAF, 0x03, 0x02, [4th Byte], [Checksum]
+          const header = [0xAF, 0x03, 0x02, powerState];
+          let checksum = 0;
+          header.forEach(byte => {
+            checksum ^= byte;
+          });
+
+          const setPowerCommand = new Uint8Array([...header, checksum]);
+          
+          const writer = port.writable.getWriter();
+          await writer.write(setPowerCommand);
+          writer.releaseLock();
+
+          const timestamp = new Date().toLocaleTimeString();
+          const hexData = Array.from(setPowerCommand).map(byte => '0x' + byte.toString(16).toUpperCase().padStart(2, '0')).join(' ');
+          const message = `[${timestamp}] SET_POWERSend: ${hexData}\n`;
+          dataDisplay.textContent += message;
+          speedProfileDataDisplay.textContent += message;
+          customCommandDataDisplay.textContent += message;
+          dataDisplay.scrollTop = dataDisplay.scrollHeight;
+          speedProfileDataDisplay.scrollTop = speedProfileDataDisplay.scrollHeight;
+          customCommandDataDisplay.scrollTop = customCommandDataDisplay.scrollHeight;
+
+        } catch (error) {
+          console.error('SET_POWER Send Error:', error);
+        }
+      }
+    });
+
+    // START_SENDING_DATACommandSend
+    sendStartSendingDataButton.addEventListener('click', async () => {
+      if (port && port.writable) {
+        try {
+          const dataSet = parseInt(dataSetInput.value) || 0;
+          const sendInterval = parseInt(sendIntervalInput.value) || 0;
+          const speedProfile = parseInt(speedProfileInput.value) || 0;
+          
+          // Input value validation
+          if (dataSet < 0 || dataSet > 255) {
+            alert('Please enter a data set number between 0 and 255.');
+            return;
+          }
+          if (sendInterval < 0 || sendInterval > 65535) {
+            alert('Please enter a send interval between 0 and 65535.');
+            return;
+          }
+          if (speedProfile < 0 || speedProfile > 255) {
+            alert('Please enter a speed profile number between 0 and 255.');
+            return;
+          }
+
+          // Build START_SENDING_DATA command
+          // Format: 0xAF, 0x06, 0x00, [Dataset number], [Send interval high], [Send interval low], [Speed Profile Number], [Checksum]
+          const header = [0xAF, 0x06, 0x00, dataSet];
+          const intervalHigh = (sendInterval >> 8) & 0xFF; // High byte
+          const intervalLow = sendInterval & 0xFF; // Low byte
+          const data = [intervalHigh, intervalLow, speedProfile];
+          
+          let checksum = 0;
+          [...header, ...data].forEach(byte => {
+            checksum ^= byte;
+          });
+
+          const startSendingDataCommand = new Uint8Array([...header, ...data, checksum]);
+          
+          const writer = port.writable.getWriter();
+          await writer.write(startSendingDataCommand);
+          writer.releaseLock();
+
+          const timestamp = new Date().toLocaleTimeString();
+          const hexData = Array.from(startSendingDataCommand).map(byte => '0x' + byte.toString(16).toUpperCase().padStart(2, '0')).join(' ');
+          const message = `[${timestamp}] START_SENDING_DATASend: ${hexData}\n`;
+          dataDisplay.textContent += message;
+          speedProfileDataDisplay.textContent += message;
+          customCommandDataDisplay.textContent += message;
+          dataDisplay.scrollTop = dataDisplay.scrollHeight;
+          speedProfileDataDisplay.scrollTop = speedProfileDataDisplay.scrollHeight;
+          customCommandDataDisplay.scrollTop = customCommandDataDisplay.scrollHeight;
+
+        } catch (error) {
+          console.error('START_SENDING_DATA Send Error:', error);
+        }
+      }
+    });
+
+    // STOP_SENDING_DATACommandSend
+    sendStopSendingDataButton.addEventListener('click', async () => {
+      if (port && port.writable) {
+        try {
+          // Build STOP_SENDING_DATA command
+          // Format: 0xAF, 0x02, 0x01, 0xAC (4 bytes fixed)
+          const stopSendingDataCommand = new Uint8Array([0xAF, 0x02, 0x01, 0xAC]);
+          
+          const writer = port.writable.getWriter();
+          await writer.write(stopSendingDataCommand);
+          writer.releaseLock();
+
+          const timestamp = new Date().toLocaleTimeString();
+          const hexData = Array.from(stopSendingDataCommand).map(byte => '0x' + byte.toString(16).toUpperCase().padStart(2, '0')).join(' ');
+          const message = `[${timestamp}] STOP_SENDING_DATASend: ${hexData}\n`;
+          dataDisplay.textContent += message;
+          speedProfileDataDisplay.textContent += message;
+          customCommandDataDisplay.textContent += message;
+          dataDisplay.scrollTop = dataDisplay.scrollHeight;
+          speedProfileDataDisplay.scrollTop = speedProfileDataDisplay.scrollHeight;
+          customCommandDataDisplay.scrollTop = customCommandDataDisplay.scrollHeight;
+
+        } catch (error) {
+          console.error('STOP_SENDING_DATA Send Error:', error);
+        }
+      }
+    });
+
+    // SET_JOYSTICKCommandSend
+    sendSetJoystickButton.addEventListener('click', async () => {
+      if (port && port.writable) {
+        try {
+          const bodyPriority = parseInt(bodyPriorityInput.value) || 0;
+          const forwardBackward = parseInt(forwardBackwardInput.value) || 0;
+          const leftRight = parseInt(leftRightInput.value) || 0;
+          
+          // Input value validation
+          if (bodyPriority < 0 || bodyPriority > 255) {
+            alert('Please enter Body Priority between 0 and 255.');
+            return;
+          }
+          if (forwardBackward < -128 || forwardBackward > 127) {
+            alert('Please enter Forward/Backward Direction between -128 and 127.');
+            return;
+          }
+          if (leftRight < -128 || leftRight > 127) {
+            alert('Please enter Left/Right Turn Direction between -128 and 127.');
+            return;
+          }
+
+          // Build SET_JOYSTICK command
+          // Format: 0xAF, 0x05, 0x03, [Body Priority], [Forward/Backward Direction], [Left/Right Turn Direction], [Checksum]
+          const header = [0xAF, 0x05, 0x03, bodyPriority];
+          const data = [forwardBackward, leftRight];
+          
+          let checksum = 0;
+          [...header, ...data].forEach(byte => {
+            checksum ^= byte;
+          });
+
+          const setJoystickCommand = new Uint8Array([...header, ...data, checksum]);
+          
+          const writer = port.writable.getWriter();
+          await writer.write(setJoystickCommand);
+          writer.releaseLock();
+
+          const timestamp = new Date().toLocaleTimeString();
+          const hexData = Array.from(setJoystickCommand).map(byte => '0x' + byte.toString(16).toUpperCase().padStart(2, '0')).join(' ');
+          const message = `[${timestamp}] SET_JOYSTICKSend: ${hexData}\n`;
+          dataDisplay.textContent += message;
+          speedProfileDataDisplay.textContent += message;
+          customCommandDataDisplay.textContent += message;
+          dataDisplay.scrollTop = dataDisplay.scrollHeight;
+          speedProfileDataDisplay.scrollTop = speedProfileDataDisplay.scrollHeight;
+          customCommandDataDisplay.scrollTop = customCommandDataDisplay.scrollHeight;
+
+        } catch (error) {
+          console.error('SET_JOYSTICK Send Error:', error);
+        }
+      }
+    });
+
+    // SET_JOYSTICK continuous send function
+    let joystickContinuousInterval = null;
+    let isJoystickContinuousSending = false;
+
+    // Start continuous send
+    function startJoystickContinuousSending() {
+      if (isJoystickContinuousSending) return;
+      
+      isJoystickContinuousSending = true;
+      sendSetJoystickContinuousButton.classList.add('sending');
+      sendSetJoystickContinuousButton.textContent = 'Sending... SET_JOYSTICK (Continuous)';
+      
+      // Send SET_JOYSTICK command at 100ms intervals
+      joystickContinuousInterval = setInterval(async () => {
+        if (port && port.writable) {
+          try {
+            const bodyPriority = parseInt(bodyPriorityInput.value) || 0;
+            const forwardBackward = parseInt(forwardBackwardInput.value) || 0;
+            const leftRight = parseInt(leftRightInput.value) || 0;
+            
+            // Input value validation
+            if (bodyPriority < 0 || bodyPriority > 255) {
+              stopJoystickContinuousSending();
+              alert('Please enter Body Priority between 0 and 255.');
+              return;
+            }
+            if (forwardBackward < -128 || forwardBackward > 127) {
+              stopJoystickContinuousSending();
+              alert('Please enter Forward/Backward Direction between -128 and 127.');
+              return;
+            }
+            if (leftRight < -128 || leftRight > 127) {
+              stopJoystickContinuousSending();
+              alert('Please enter Left/Right Turn Direction between -128 and 127.');
+              return;
+            }
+
+            // Build SET_JOYSTICK command
+            const header = [0xAF, 0x05, 0x03, bodyPriority, forwardBackward, leftRight];
+            
+            let checksum = 0;
+            header.forEach(byte => {
+              checksum ^= byte;
+            });
+
+            const setJoystickCommand = new Uint8Array([...header, checksum]);
+            
+            const writer = port.writable.getWriter();
+            await writer.write(setJoystickCommand);
+            writer.releaseLock();
+
+            const timestamp = new Date().toLocaleTimeString();
+            const hexData = Array.from(setJoystickCommand).map(byte => '0x' + byte.toString(16).toUpperCase().padStart(2, '0')).join(' ');
+            const message = `[${timestamp}] Send SET_JOYSTICK (Continuous): ${hexData}\n`;
+            dataDisplay.textContent += message;
+            speedProfileDataDisplay.textContent += message;
+            customCommandDataDisplay.textContent += message;
+            dataDisplay.scrollTop = dataDisplay.scrollHeight;
+            speedProfileDataDisplay.scrollTop = speedProfileDataDisplay.scrollHeight;
+            customCommandDataDisplay.scrollTop = customCommandDataDisplay.scrollHeight;
+
+          } catch (error) {
+            console.error('Send SET_JOYSTICK (Continuous) Error:', error);
+            stopJoystickContinuousSending();
+          }
+        } else {
+          stopJoystickContinuousSending();
+        }
+      }, 100);
+    }
+
+    // Stop continuous send
+    function stopJoystickContinuousSending() {
+      if (!isJoystickContinuousSending) return;
+      
+      isJoystickContinuousSending = false;
+      sendSetJoystickContinuousButton.classList.remove('sending');
+      sendSetJoystickContinuousButton.textContent = 'Send SET_JOYSTICK (Continuous)';
+      
+      if (joystickContinuousInterval) {
+        clearInterval(joystickContinuousInterval);
+        joystickContinuousInterval = null;
+      }
+    }
+
+    // Continuous send button event listener
+    sendSetJoystickContinuousButton.addEventListener('mousedown', () => {
+      if (port && port.writable) {
+        startJoystickContinuousSending();
+      }
+    });
+
+    sendSetJoystickContinuousButton.addEventListener('mouseup', () => {
+      stopJoystickContinuousSending();
+    });
+
+    sendSetJoystickContinuousButton.addEventListener('mouseleave', () => {
+      stopJoystickContinuousSending();
+    });
+
+    // Keyboard event (long press support for Space key)
+    document.addEventListener('keydown', (event) => {
+      if (event.code === 'Space' && event.target === sendSetJoystickContinuousButton) {
+        event.preventDefault();
+        if (port && port.writable) {
+          startJoystickContinuousSending();
+        }
+      }
+    });
+
+    document.addEventListener('keyup', (event) => {
+      if (event.code === 'Space') {
+        stopJoystickContinuousSending();
+      }
+    });
+
+    // SET_SPEED_PROFILECommandSend
+    sendSetSpeedProfileButton.addEventListener('click', async () => {
+      if (port && port.writable) {
+        try {
+          const speedProfileData = [];
+          
+          // Get from 4th byte to 13th byte
+          for (let i = 4; i <= 13; i++) {
+            const value = parseInt(speedProfileInputs[i].value) || 0;
+            
+            // Input value validation
+            if (value < 0 || value > 255) {
+              alert(`${i}byte must be between 0 and 255.`);
+              return;
+            }
+            
+            speedProfileData.push(value);
+          }
+
+          // Build SET_SPEED_PROFILE command
+          // Format: 0xAF, 0x0C, 0x04, [4th Byte], [5th Byte], ..., [13th byte], [Checksum]
+          const header = [0xAF, 0x0C, 0x04];
+          
+          let checksum = 0;
+          [...header, ...speedProfileData].forEach(byte => {
+            checksum ^= byte;
+          });
+
+          const setSpeedProfileCommand = new Uint8Array([...header, ...speedProfileData, checksum]);
+          
+          const writer = port.writable.getWriter();
+          await writer.write(setSpeedProfileCommand);
+          writer.releaseLock();
+
+          const timestamp = new Date().toLocaleTimeString();
+          const hexData = Array.from(setSpeedProfileCommand).map(byte => '0x' + byte.toString(16).toUpperCase().padStart(2, '0')).join(' ');
+          const message = `[${timestamp}] SET_SPEED_PROFILESend: ${hexData}\n`;
+          dataDisplay.textContent += message;
+          speedProfileDataDisplay.textContent += message;
+          customCommandDataDisplay.textContent += message;
+          dataDisplay.scrollTop = dataDisplay.scrollHeight;
+          speedProfileDataDisplay.scrollTop = speedProfileDataDisplay.scrollHeight;
+          customCommandDataDisplay.scrollTop = customCommandDataDisplay.scrollHeight;
+
+        } catch (error) {
+          console.error('SET_SPEED_PROFILE Send Error:', error);
+        }
+      }
+    });
+
+    // SET_BATTERY_SAVINGCommandSend
+    sendSetBatterySavingButton.addEventListener('click', async () => {
+      if (port && port.writable) {
+        try {
+          const batteryLevel = parseInt(batteryLevelInput.value) || 0;
+          const buzzerSetting = parseInt(buzzerSettingInput.value) || 0;
+          
+          // Input value validation
+          if (batteryLevel < 0 || batteryLevel > 255) {
+            alert('Please enter a battery saving level between 0 and 255.');
+            return;
+          }
+          if (buzzerSetting < 0 || buzzerSetting > 255) {
+            alert('Please enter a buzzer setting between 0 and 255.');
+            return;
+          }
+
+          // Build SET_BATTERY_SAVING command
+          // Format: 0xAF, 0x04, 0x06, [Battery saving level], [Buzzer setting], [Checksum]
+          const header = [0xAF, 0x04, 0x06, batteryLevel, buzzerSetting];
+          
+          let checksum = 0;
+          header.forEach(byte => {
+            checksum ^= byte;
+          });
+
+          const setBatterySavingCommand = new Uint8Array([...header, checksum]);
+          
+          const writer = port.writable.getWriter();
+          await writer.write(setBatterySavingCommand);
+          writer.releaseLock();
+
+          const timestamp = new Date().toLocaleTimeString();
+          const hexData = Array.from(setBatterySavingCommand).map(byte => '0x' + byte.toString(16).toUpperCase().padStart(2, '0')).join(' ');
+          const message = `[${timestamp}] SET_BATTERY_SAVINGSend: ${hexData}\n`;
+          dataDisplay.textContent += message;
+          speedProfileDataDisplay.textContent += message;
+          customCommandDataDisplay.textContent += message;
+          dataDisplay.scrollTop = dataDisplay.scrollHeight;
+          speedProfileDataDisplay.scrollTop = speedProfileDataDisplay.scrollHeight;
+          customCommandDataDisplay.scrollTop = customCommandDataDisplay.scrollHeight;
+
+        } catch (error) {
+          console.error('SET_BATTERY_SAVING Send Error:', error);
+        }
+      }
+    });
+
+    // SET_VELOCITYCommandSend
+    sendSetVelocityButton.addEventListener('click', async () => {
+      if (port && port.writable) {
+        try {
+          const bodyPriority = parseInt(velocityBodyPriorityInput.value) || 0;
+          const forwardBackwardVelocity = parseInt(forwardBackwardVelocityInput.value) || 0;
+          const leftRightVelocity = parseInt(leftRightVelocityInput.value) || 0;
+          
+          // Input value validation
+          if (bodyPriority < 0 || bodyPriority > 255) {
+            alert('Please enter Body Priority between 0 and 255.');
+            return;
+          }
+          if (forwardBackwardVelocity < -32768 || forwardBackwardVelocity > 32767) {
+            alert('Forward/Backward Directionspeed must be between -32768 and 32767.');
+            return;
+          }
+          if (leftRightVelocity < -32768 || leftRightVelocity > 32767) {
+            alert('Left/Right Turn Directionspeed must be between -32768 and 32767.');
+            return;
+          }
+
+          // Build SET_VELOCITY command
+          // Format: 0xAF, 0x07, 0x08, [Body Priority], [Forward/Backward Direction speed high], [Forward/Backward Direction speed low], [Left/Right Turn Direction speed high], [Left/Right Turn Direction speed low], [Checksum]
+          const header = [0xAF, 0x07, 0x08, bodyPriority];
+          const forwardBackwardHigh = (forwardBackwardVelocity >> 8) & 0xFF;
+          const forwardBackwardLow = forwardBackwardVelocity & 0xFF;
+          const leftRightHigh = (leftRightVelocity >> 8) & 0xFF;
+          const leftRightLow = leftRightVelocity & 0xFF;
+          const data = [forwardBackwardHigh, forwardBackwardLow, leftRightHigh, leftRightLow];
+          
+          let checksum = 0;
+          [...header, ...data].forEach(byte => {
+            checksum ^= byte;
+          });
+
+          const setVelocityCommand = new Uint8Array([...header, ...data, checksum]);
+          
+          const writer = port.writable.getWriter();
+          await writer.write(setVelocityCommand);
+          writer.releaseLock();
+
+          const timestamp = new Date().toLocaleTimeString();
+          const hexData = Array.from(setVelocityCommand).map(byte => '0x' + byte.toString(16).toUpperCase().padStart(2, '0')).join(' ');
+          const message = `[${timestamp}] Send SET_VELOCITY: ${hexData}\n`;
+          dataDisplay.textContent += message;
+          speedProfileDataDisplay.textContent += message;
+          customCommandDataDisplay.textContent += message;
+          dataDisplay.scrollTop = dataDisplay.scrollHeight;
+          speedProfileDataDisplay.scrollTop = speedProfileDataDisplay.scrollHeight;
+          customCommandDataDisplay.scrollTop = customCommandDataDisplay.scrollHeight;
+
+        } catch (error) {
+          console.error('Send SET_VELOCITY Error:', error);
+        }
+      }
+    });
+
+    // SET_VELOCITY continuous send function
+    let velocityContinuousInterval = null;
+    let isVelocityContinuousSending = false;
+
+    // Start continuous send
+    function startVelocityContinuousSending() {
+      if (isVelocityContinuousSending) return;
+      
+      isVelocityContinuousSending = true;
+      sendSetVelocityContinuousButton.classList.add('sending');
+      sendSetVelocityContinuousButton.textContent = 'Sending... SET_VELOCITY (Continuous)';
+      
+      // Send SET_VELOCITY command at 100ms intervals
+      velocityContinuousInterval = setInterval(async () => {
+        if (port && port.writable) {
+          try {
+            const bodyPriority = parseInt(velocityBodyPriorityInput.value) || 0;
+            const forwardBackwardVelocity = parseInt(forwardBackwardVelocityInput.value) || 0;
+            const leftRightVelocity = parseInt(leftRightVelocityInput.value) || 0;
+            
+            // Input value validation
+            if (bodyPriority < 0 || bodyPriority > 255) {
+              stopVelocityContinuousSending();
+              alert('Please enter Body Priority between 0 and 255.');
+              return;
+            }
+            if (forwardBackwardVelocity < -32768 || forwardBackwardVelocity > 32767) {
+              stopVelocityContinuousSending();
+              alert('Forward/Backward Directionspeed must be between -32768 and 32767.');
+              return;
+            }
+            if (leftRightVelocity < -32768 || leftRightVelocity > 32767) {
+              stopVelocityContinuousSending();
+              alert('Left/Right Turn Directionspeed must be between -32768 and 32767.');
+              return;
+            }
+
+            // Build SET_VELOCITY command
+            const header = [0xAF, 0x07, 0x08, bodyPriority];
+            const forwardBackwardHigh = (forwardBackwardVelocity >> 8) & 0xFF;
+            const forwardBackwardLow = forwardBackwardVelocity & 0xFF;
+            const leftRightHigh = (leftRightVelocity >> 8) & 0xFF;
+            const leftRightLow = leftRightVelocity & 0xFF;
+            const data = [forwardBackwardHigh, forwardBackwardLow, leftRightHigh, leftRightLow];
+            
+            let checksum = 0;
+            [...header, ...data].forEach(byte => {
+              checksum ^= byte;
+            });
+
+            const setVelocityCommand = new Uint8Array([...header, ...data, checksum]);
+            
+            const writer = port.writable.getWriter();
+            await writer.write(setVelocityCommand);
+            writer.releaseLock();
+
+            const timestamp = new Date().toLocaleTimeString();
+            const hexData = Array.from(setVelocityCommand).map(byte => '0x' + byte.toString(16).toUpperCase().padStart(2, '0')).join(' ');
+            const message = `[${timestamp}] Send SET_VELOCITY (Continuous): ${hexData}\n`;
+            dataDisplay.textContent += message;
+            speedProfileDataDisplay.textContent += message;
+            customCommandDataDisplay.textContent += message;
+            dataDisplay.scrollTop = dataDisplay.scrollHeight;
+            speedProfileDataDisplay.scrollTop = speedProfileDataDisplay.scrollHeight;
+            customCommandDataDisplay.scrollTop = customCommandDataDisplay.scrollHeight;
+
+          } catch (error) {
+            console.error('Send SET_VELOCITY (Continuous) Error:', error);
+            stopVelocityContinuousSending();
+          }
+        } else {
+          stopVelocityContinuousSending();
+        }
+      }, 100);
+    }
+
+    // Stop continuous send
+    function stopVelocityContinuousSending() {
+      if (!isVelocityContinuousSending) return;
+      
+      isVelocityContinuousSending = false;
+      sendSetVelocityContinuousButton.classList.remove('sending');
+      sendSetVelocityContinuousButton.textContent = 'Send SET_VELOCITY (Continuous)';
+      
+      if (velocityContinuousInterval) {
+        clearInterval(velocityContinuousInterval);
+        velocityContinuousInterval = null;
+      }
+    }
+
+    // Continuous send button event listener
+    sendSetVelocityContinuousButton.addEventListener('mousedown', () => {
+      if (port && port.writable) {
+        startVelocityContinuousSending();
+      }
+    });
+
+    sendSetVelocityContinuousButton.addEventListener('mouseup', () => {
+      stopVelocityContinuousSending();
+    });
+
+    sendSetVelocityContinuousButton.addEventListener('mouseleave', () => {
+      stopVelocityContinuousSending();
+    });
+
+    // Initialization processing
+    // Disable speed profile input fields
+    setSpeedProfileInputsEditable(false);
+
+    // Update initial command preview
+    updateCommandPreview();
+    updateStartSendingDataPreview();
+    updateSetJoystickPreview();
+    updateSetSpeedProfilePreview();
+    updateSetBatterySavingPreview();
+    updateSetVelocityPreview();
+
+    // Joystick initialization
+    initJoystick();
+  </script>
+</body>
+
+</html>
