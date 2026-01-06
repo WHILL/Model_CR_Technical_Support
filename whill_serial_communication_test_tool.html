@@ -174,6 +174,19 @@
       box-shadow: 0 6px 12px rgba(102, 102, 102, 0.4);
     }
 
+    /* Download CSV Button Styles */
+    .download-csv-button {
+      background-color: #28a745;
+      color: white;
+      box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+    }
+
+    .download-csv-button:hover:not(:disabled) {
+      background-color: #218838;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(40, 167, 69, 0.4);
+    }
+
     #data-display {
       width: 100%;
       height: 300px;
@@ -707,7 +720,7 @@
 <body>
   <!-- Fixed Header Section -->
   <div class="fixed-header">
-    <h1><span>WHILL Serial Communication Test Tool Ver1.00</span></h1>
+    <h1><span>WHILL Serial Communication Test Tool (v1.00)</span></h1>
 
     <!-- Pre-connection Display Area -->
     <div id="pre-connection-area" class="pre-connection-area">
@@ -854,6 +867,7 @@
         <legend>Send/Receive Data Display</legend>
         <div id="data-display"></div>
         <button id="clear-button" type="button" class="clear-button">Clear</button>
+        <button id="download-csv-button" type="button" class="download-csv-button">Download CSV</button>
       </fieldset>
     </div>
 
@@ -1125,6 +1139,7 @@
         <legend>Send/Receive Data Display</legend>
         <div id="speed-profile-data-display"></div>
         <button id="speed-profile-clear-button" type="button" class="clear-button">Clear</button>
+        <button id="speed-profile-download-csv-button" type="button" class="download-csv-button">Download CSV</button>
       </fieldset>
 
     </div>
@@ -1594,6 +1609,7 @@
         <legend>Send/Receive Data Display</legend>
         <div id="custom-command-data-display"></div>
         <button id="custom-command-clear-button" type="button" class="clear-button">Clear</button>
+        <button id="custom-command-download-csv-button" type="button" class="download-csv-button">Download CSV</button>
       </fieldset>
     </div>
   </div>
@@ -1751,9 +1767,34 @@
       });
     }
 
+    // Get Japan time string in YYYY/MM/DD HH:MM:SS format for log display
+    function getJapanTimeString() {
+      const now = new Date();
+      const formatter = new Intl.DateTimeFormat('ja-JP', {
+        timeZone: 'Asia/Tokyo',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
+      });
+      
+      const parts = formatter.formatToParts(now);
+      const year = parts.find(p => p.type === 'year').value;
+      const month = parts.find(p => p.type === 'month').value;
+      const day = parts.find(p => p.type === 'day').value;
+      const hours = parts.find(p => p.type === 'hour').value;
+      const minutes = parts.find(p => p.type === 'minute').value;
+      const seconds = parts.find(p => p.type === 'second').value;
+      
+      return `${year}/${month}/${day} ${hours}:${minutes}:${seconds}`;
+    }
+
     // Data display function (displayed on all tabs)
     function displayData(data) {
-      const timestamp = new Date().toLocaleTimeString();
+      const timestamp = getJapanTimeString();
       const hexData = Array.from(data).map(byte => '0x' + byte.toString(16).toUpperCase().padStart(2, '0')).join(' ');
       const message = `[${timestamp}] Received: ${hexData}\n`;
       dataDisplay.textContent += message;
@@ -1764,13 +1805,117 @@
       customCommandDataDisplay.scrollTop = customCommandDataDisplay.scrollHeight;
     }
 
+    // CSV download button elements
+    const downloadCsvButton = document.getElementById('download-csv-button');
+    const speedProfileDownloadCsvButton = document.getElementById('speed-profile-download-csv-button');
+    const customCommandDownloadCsvButton = document.getElementById('custom-command-download-csv-button');
+
+    // Get Japan time string for filename (YYYYMMDD_HHMMSS format)
+    function getJapanTimeStringForFilename() {
+      const now = new Date();
+      const formatter = new Intl.DateTimeFormat('ja-JP', {
+        timeZone: 'Asia/Tokyo',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
+      });
+      
+      const parts = formatter.formatToParts(now);
+      const year = parts.find(p => p.type === 'year').value;
+      const month = parts.find(p => p.type === 'month').value;
+      const day = parts.find(p => p.type === 'day').value;
+      const hours = parts.find(p => p.type === 'hour').value;
+      const minutes = parts.find(p => p.type === 'minute').value;
+      const seconds = parts.find(p => p.type === 'second').value;
+      
+      return `${year}${month}${day}_${hours}${minutes}${seconds}`;
+    }
+
+    // CSV download function
+    function downloadCsv(dataDisplayElement, filename) {
+      const logText = dataDisplayElement.textContent;
+      if (!logText.trim()) {
+        alert('ダウンロードするログデータがありません。');
+        return;
+      }
+
+      // Parse log text and convert to CSV
+      // Log format: [YYYY/MM/DD HH:MM:SS] Type: hex data
+      const lines = logText.split('\n').filter(line => line.trim());
+      const csvRows = ['Timestamp,Type,Data'];
+      
+      lines.forEach(line => {
+        // Skip version response parse content (Model CR2, Version: X.XX)
+        const afterBracket = line.substring(line.indexOf(']') + 1).trim();
+        if (afterBracket === 'Model CR2' || afterBracket.startsWith('Version: ')) {
+          return;
+        }
+        
+        // Parse log line format: [timestamp] Type: hex data
+        // Example: [2026/01/06 08:07:14] Device Information Retrieval Send: 0xAF 0x02 0x07 0xAA
+        const timestampMatch = line.match(/\[([^\]]+)\]/);
+        if (!timestampMatch) return;
+        
+        const timestamp = timestampMatch[1];
+        
+        // Extract type and data
+        // Find the part after the closing bracket and before the colon
+        const colonIndex = afterBracket.indexOf(':');
+        
+        if (colonIndex === -1) return;
+        
+        const type = afterBracket.substring(0, colonIndex).trim();
+        const data = afterBracket.substring(colonIndex + 1).trim();
+        
+        // Escape commas and quotes in CSV
+        const escapedTimestamp = `"${timestamp.replace(/"/g, '""')}"`;
+        const escapedType = `"${type.replace(/"/g, '""')}"`;
+        const escapedData = `"${data.replace(/"/g, '""')}"`;
+        
+        csvRows.push(`${escapedTimestamp},${escapedType},${escapedData}`);
+      });
+
+      // Create CSV content
+      const csvContent = csvRows.join('\n');
+      
+      // Create blob and download
+      const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }
+
+    // CSV download button handlers
+    downloadCsvButton.addEventListener('click', () => {
+      const timestamp = getJapanTimeStringForFilename();
+      downloadCsv(dataDisplay, `whill_log_${timestamp}.csv`);
+    });
+
+    speedProfileDownloadCsvButton.addEventListener('click', () => {
+      const timestamp = getJapanTimeStringForFilename();
+      downloadCsv(speedProfileDataDisplay, `whill_log_${timestamp}.csv`);
+    });
+
+    customCommandDownloadCsvButton.addEventListener('click', () => {
+      const timestamp = getJapanTimeStringForFilename();
+      downloadCsv(customCommandDataDisplay, `whill_log_${timestamp}.csv`);
+    });
+
     // Clear button handler (clear all tabs)
     clearButton.addEventListener('click', () => {
       dataDisplay.textContent = '';
       speedProfileDataDisplay.textContent = '';
       customCommandDataDisplay.textContent = '';
     });
-
 
     // Clear button handler for speed profile (clear all tabs)
     speedProfileClearButton.addEventListener('click', () => {
@@ -1902,9 +2047,9 @@
           await writer.write(startSendingDataCommand);
           writer.releaseLock();
 
-          const timestamp = new Date().toLocaleTimeString();
+          const timestamp = getJapanTimeString();
           const hexData = Array.from(startSendingDataCommand).map(byte => '0x' + byte.toString(16).toUpperCase().padStart(2, '0')).join(' ');
-          const message = `[${timestamp}] Status Retrieval Start Send: ${hexData}\n`;
+          const message = `[${timestamp}] Send Status Retrieval Start: ${hexData}\n`;
           dataDisplay.textContent += message;
           speedProfileDataDisplay.textContent += message;
           customCommandDataDisplay.textContent += message;
@@ -1929,9 +2074,9 @@
           await writer.write(stopSendingDataCommand);
           writer.releaseLock();
 
-          const timestamp = new Date().toLocaleTimeString();
+          const timestamp = getJapanTimeString();
           const hexData = Array.from(stopSendingDataCommand).map(byte => '0x' + byte.toString(16).toUpperCase().padStart(2, '0')).join(' ');
-          const message = `[${timestamp}] Status Retrieval Stop Send: ${hexData}\n`;
+          const message = `[${timestamp}] Send Status Retrieval Stop: ${hexData}\n`;
           dataDisplay.textContent += message;
           speedProfileDataDisplay.textContent += message;
           customCommandDataDisplay.textContent += message;
@@ -1961,9 +2106,9 @@
           // 1st time send
           await writer.write(powerOnData);
           
-          const timestamp1 = new Date().toLocaleTimeString();
+          const timestamp1 = getJapanTimeString();
           const hexData = Array.from(powerOnData).map(byte => '0x' + byte.toString(16).toUpperCase().padStart(2, '0')).join(' ');
-          const message1 = `[${timestamp1}] Send: ${hexData} (1st time)\n`;
+          const message1 = `[${timestamp1}] Send Power ON (1st time): ${hexData}\n`;
           dataDisplay.textContent += message1;
           customCommandDataDisplay.textContent += message1;
           
@@ -1973,8 +2118,8 @@
           // 2nd time send
           await writer.write(powerOnData);
           
-          const timestamp2 = new Date().toLocaleTimeString();
-          const message2 = `[${timestamp2}] Send: ${hexData} (2nd time)\n`;
+          const timestamp2 = getJapanTimeString();
+          const message2 = `[${timestamp2}] Send Power ON (2nd time): ${hexData}\n`;
           dataDisplay.textContent += message2;
           customCommandDataDisplay.textContent += message2;
           
@@ -1998,9 +2143,9 @@
           await writer.write(powerOffData);
           writer.releaseLock();
 
-          const timestamp = new Date().toLocaleTimeString();
+          const timestamp = getJapanTimeString();
           const hexData = Array.from(powerOffData).map(byte => '0x' + byte.toString(16).toUpperCase().padStart(2, '0')).join(' ');
-          const message = `[${timestamp}] Send: ${hexData}\n`;
+          const message = `[${timestamp}] Send Power OFF: ${hexData}\n`;
           dataDisplay.textContent += message;
           customCommandDataDisplay.textContent += message;
           dataDisplay.scrollTop = dataDisplay.scrollHeight;
@@ -2020,9 +2165,9 @@
           await writer.write(versionData);
           writer.releaseLock();
 
-          const timestamp = new Date().toLocaleTimeString();
+          const timestamp = getJapanTimeString();
           const hexData = Array.from(versionData).map(byte => '0x' + byte.toString(16).toUpperCase().padStart(2, '0')).join(' ');
-          const message = `[${timestamp}] Device Information Retrieval Send: ${hexData}\n`;
+          const message = `[${timestamp}] Send Device Information Retrieval: ${hexData}\n`;
           dataDisplay.textContent += message;
           speedProfileDataDisplay.textContent += message;
           customCommandDataDisplay.textContent += message;
@@ -2068,7 +2213,7 @@
               await writer.write(versionData);
               writer.releaseLock();
 
-              const timestamp = new Date().toLocaleTimeString();
+              const timestamp = getJapanTimeString();
               const hexData = Array.from(versionData).map(byte => '0x' + byte.toString(16).toUpperCase().padStart(2, '0')).join(' ');
               const message = `[${timestamp}] Retry (${versionResponseRetryCount}/${versionResponseMaxRetries}): ${hexData}\n`;
               dataDisplay.textContent += message;
@@ -2079,7 +2224,7 @@
               // Wait 500ms after resend
               setTimeout(() => {
                 if (waitingForVersionResponse && versionResponseRetryCount >= versionResponseMaxRetries) {
-                  const timestamp = new Date().toLocaleTimeString();
+                  const timestamp = getJapanTimeString();
                   const message = `[${timestamp}] Device Information Retrieval Failed (Max retries reached)\n`;
                   dataDisplay.textContent += message;
                   speedProfileDataDisplay.textContent += message;
@@ -2115,7 +2260,7 @@
           receivedBuffer[2] === 0x52 &&
           receivedBuffer[3] === 0xFF) {
           // Process when Power ON response is received
-          const timestamp = new Date().toLocaleTimeString();
+          const timestamp = getJapanTimeString();
           const message = `[${timestamp}] Power ON Response Received\n`;
           dataDisplay.textContent += message;
           dataDisplay.scrollTop = dataDisplay.scrollHeight;
@@ -2161,7 +2306,7 @@
       if (receivedBuffer.length >= 5) {
         if (waitingForVersionResponse) {
           // Process when version response is received
-          const timestamp = new Date().toLocaleTimeString();
+          const timestamp = getJapanTimeString();
           const message1 = `[${timestamp}] Model CR2\n`;
           dataDisplay.textContent += message1;
 
@@ -2245,6 +2390,12 @@
         // Enable buttons for basic function tab as well
         mainStartSendingDataButton.disabled = false;
         mainStopSendingDataButton.disabled = false;
+        
+        // Enable CSV download buttons
+        downloadCsvButton.disabled = false;
+        speedProfileDownloadCsvButton.disabled = false;
+        customCommandDownloadCsvButton.disabled = false;
+        
         keepReading = true;
 
         // Reset device information
@@ -2358,6 +2509,16 @@
         // Disable buttons for basic function tab as well
         mainStartSendingDataButton.disabled = true;
         mainStopSendingDataButton.disabled = true;
+        
+        // Disable CSV download buttons
+        downloadCsvButton.disabled = true;
+        speedProfileDownloadCsvButton.disabled = true;
+        customCommandDownloadCsvButton.disabled = true;
+        
+        // Disable CSV download buttons
+        downloadCsvButton.disabled = true;
+        speedProfileDownloadCsvButton.disabled = true;
+        customCommandDownloadCsvButton.disabled = true;
 
       // Initial connection button event listener
       initialConnectButton.addEventListener('click', async () => {
@@ -2553,9 +2714,9 @@
         await writer.write(joystickCommand);
         writer.releaseLock();
 
-        const timestamp = new Date().toLocaleTimeString();
+        const timestamp = getJapanTimeString();
         const hexData = Array.from(joystickCommand).map(byte => '0x' + byte.toString(16).toUpperCase().padStart(2, '0')).join(' ');
-        const message = `[${timestamp}] Joystick Send: ${hexData}\n`;
+        const message = `[${timestamp}] Send Joystick: ${hexData}\n`;
         dataDisplay.textContent += message;
         dataDisplay.scrollTop = dataDisplay.scrollHeight;
 
@@ -2633,9 +2794,9 @@
             await stopWriter.write(stopCommand);
             stopWriter.releaseLock();
 
-            const stopTimestamp = new Date().toLocaleTimeString();
+            const stopTimestamp = getJapanTimeString();
             const stopHexData = Array.from(stopCommand).map(byte => '0x' + byte.toString(16).toUpperCase().padStart(2, '0')).join(' ');
-            const stopMessage = `[${stopTimestamp}] Speed Profile Stop Send (Cancelled): ${stopHexData}\n`;
+            const stopMessage = `[${stopTimestamp}] Send Speed Profile Stop (Cancelled): ${stopHexData}\n`;
             dataDisplay.textContent += stopMessage;
             speedProfileDataDisplay.textContent += stopMessage;
             dataDisplay.scrollTop = dataDisplay.scrollHeight;
@@ -2663,9 +2824,9 @@
         await finalStopWriter.write(finalStopCommand);
         finalStopWriter.releaseLock();
 
-        const finalStopTimestamp = new Date().toLocaleTimeString();
+        const finalStopTimestamp = getJapanTimeString();
         const finalStopHexData = Array.from(finalStopCommand).map(byte => '0x' + byte.toString(16).toUpperCase().padStart(2, '0')).join(' ');
-        const finalStopMessage = `[${finalStopTimestamp}] Speed Profile Stop Send(Final): ${finalStopHexData}\n`;
+        const finalStopMessage = `[${finalStopTimestamp}] Send Speed Profile Stop (Final): ${finalStopHexData}\n`;
         dataDisplay.textContent += finalStopMessage;
         speedProfileDataDisplay.textContent += finalStopMessage;
         dataDisplay.scrollTop = dataDisplay.scrollHeight;
@@ -2704,9 +2865,9 @@
             await stopWriter.write(stopCommand);
             stopWriter.releaseLock();
 
-            const stopTimestamp = new Date().toLocaleTimeString();
+            const stopTimestamp = getJapanTimeString();
             const stopHexData = Array.from(stopCommand).map(byte => '0x' + byte.toString(16).toUpperCase().padStart(2, '0')).join(' ');
-            const stopMessage = `[${stopTimestamp}] Speed Profile Stop Send: ${stopHexData}\n`;
+            const stopMessage = `[${stopTimestamp}] Send Speed Profile Stop: ${stopHexData}\n`;
             dataDisplay.textContent += stopMessage;
             speedProfileDataDisplay.textContent += stopMessage;
             dataDisplay.scrollTop = dataDisplay.scrollHeight;
@@ -2727,9 +2888,9 @@
           await writer.write(getCommand);
           writer.releaseLock();
 
-          const timestamp = new Date().toLocaleTimeString();
+          const timestamp = getJapanTimeString();
           const hexData = Array.from(getCommand).map(byte => '0x' + byte.toString(16).toUpperCase().padStart(2, '0')).join(' ');
-          const message = `[${timestamp}] Speed Profile Retrieval Send: ${hexData}\n`;
+          const message = `[${timestamp}] Send Speed Profile Retrieval: ${hexData}\n`;
           dataDisplay.textContent += message;
           speedProfileDataDisplay.textContent += message;
           dataDisplay.scrollTop = dataDisplay.scrollHeight;
@@ -2779,7 +2940,7 @@
           // Update UI
           updateSpeedProfileDisplay(speedMode);
 
-          const completeTimestamp = new Date().toLocaleTimeString();
+          const completeTimestamp = getJapanTimeString();
           const message = `[${completeTimestamp}] Speed Mode ${speedMode} Profile Received Complete\n`;
           dataDisplay.textContent += message;
           speedProfileDataDisplay.textContent += message;
@@ -2868,7 +3029,7 @@
               power, speedMode, errorCode, angleCounter
             });
 
-            const completeTimestamp = new Date().toLocaleTimeString();
+            const completeTimestamp = getJapanTimeString();
             const message = `[${completeTimestamp}] Motor Status Received Complete\n`;
             dataDisplay.textContent += message;
             speedProfileDataDisplay.textContent += message;
@@ -2935,8 +3096,6 @@
 
     // Motor status display update function
     function updateMotorStatusDisplay(status) {
-      const timestamp = new Date().toLocaleTimeString();
-      
       // Update three motor status displays
       const displayIds = ['', '-velocity', '-start-sending'];
       
@@ -3063,9 +3222,9 @@
         await writer.write(setCommand);
         writer.releaseLock();
 
-        const timestamp = new Date().toLocaleTimeString();
+        const timestamp = getJapanTimeString();
         const hexData = Array.from(setCommand).map(byte => '0x' + byte.toString(16).toUpperCase().padStart(2, '0')).join(' ');
-        const message = `[${timestamp}] Speed Profile Setting Send (Mode ${speedMode}): ${hexData}\n`;
+        const message = `[${timestamp}] Send Speed Profile Setting (Mode ${speedMode}): ${hexData}\n`;
         dataDisplay.textContent += message;
         speedProfileDataDisplay.textContent += message;
         dataDisplay.scrollTop = dataDisplay.scrollHeight;
@@ -3353,9 +3512,9 @@
           await writer.write(setPowerCommand);
           writer.releaseLock();
 
-          const timestamp = new Date().toLocaleTimeString();
+          const timestamp = getJapanTimeString();
           const hexData = Array.from(setPowerCommand).map(byte => '0x' + byte.toString(16).toUpperCase().padStart(2, '0')).join(' ');
-          const message = `[${timestamp}] SET_POWERSend: ${hexData}\n`;
+          const message = `[${timestamp}] Send SET_POWER: ${hexData}\n`;
           dataDisplay.textContent += message;
           speedProfileDataDisplay.textContent += message;
           customCommandDataDisplay.textContent += message;
@@ -3409,9 +3568,9 @@
           await writer.write(startSendingDataCommand);
           writer.releaseLock();
 
-          const timestamp = new Date().toLocaleTimeString();
+          const timestamp = getJapanTimeString();
           const hexData = Array.from(startSendingDataCommand).map(byte => '0x' + byte.toString(16).toUpperCase().padStart(2, '0')).join(' ');
-          const message = `[${timestamp}] START_SENDING_DATASend: ${hexData}\n`;
+          const message = `[${timestamp}] Send START_SENDING_DATA: ${hexData}\n`;
           dataDisplay.textContent += message;
           speedProfileDataDisplay.textContent += message;
           customCommandDataDisplay.textContent += message;
@@ -3437,9 +3596,9 @@
           await writer.write(stopSendingDataCommand);
           writer.releaseLock();
 
-          const timestamp = new Date().toLocaleTimeString();
+          const timestamp = getJapanTimeString();
           const hexData = Array.from(stopSendingDataCommand).map(byte => '0x' + byte.toString(16).toUpperCase().padStart(2, '0')).join(' ');
-          const message = `[${timestamp}] STOP_SENDING_DATASend: ${hexData}\n`;
+          const message = `[${timestamp}] Send STOP_SENDING_DATA: ${hexData}\n`;
           dataDisplay.textContent += message;
           speedProfileDataDisplay.textContent += message;
           customCommandDataDisplay.textContent += message;
@@ -3491,9 +3650,9 @@
           await writer.write(setJoystickCommand);
           writer.releaseLock();
 
-          const timestamp = new Date().toLocaleTimeString();
+          const timestamp = getJapanTimeString();
           const hexData = Array.from(setJoystickCommand).map(byte => '0x' + byte.toString(16).toUpperCase().padStart(2, '0')).join(' ');
-          const message = `[${timestamp}] SET_JOYSTICKSend: ${hexData}\n`;
+          const message = `[${timestamp}] Send SET_JOYSTICK: ${hexData}\n`;
           dataDisplay.textContent += message;
           speedProfileDataDisplay.textContent += message;
           customCommandDataDisplay.textContent += message;
@@ -3558,7 +3717,7 @@
             await writer.write(setJoystickCommand);
             writer.releaseLock();
 
-            const timestamp = new Date().toLocaleTimeString();
+            const timestamp = getJapanTimeString();
             const hexData = Array.from(setJoystickCommand).map(byte => '0x' + byte.toString(16).toUpperCase().padStart(2, '0')).join(' ');
             const message = `[${timestamp}] Send SET_JOYSTICK (Continuous): ${hexData}\n`;
             dataDisplay.textContent += message;
@@ -3657,9 +3816,9 @@
           await writer.write(setSpeedProfileCommand);
           writer.releaseLock();
 
-          const timestamp = new Date().toLocaleTimeString();
+          const timestamp = getJapanTimeString();
           const hexData = Array.from(setSpeedProfileCommand).map(byte => '0x' + byte.toString(16).toUpperCase().padStart(2, '0')).join(' ');
-          const message = `[${timestamp}] SET_SPEED_PROFILESend: ${hexData}\n`;
+          const message = `[${timestamp}] Send SET_SPEED_PROFILE: ${hexData}\n`;
           dataDisplay.textContent += message;
           speedProfileDataDisplay.textContent += message;
           customCommandDataDisplay.textContent += message;
@@ -3705,9 +3864,9 @@
           await writer.write(setBatterySavingCommand);
           writer.releaseLock();
 
-          const timestamp = new Date().toLocaleTimeString();
+          const timestamp = getJapanTimeString();
           const hexData = Array.from(setBatterySavingCommand).map(byte => '0x' + byte.toString(16).toUpperCase().padStart(2, '0')).join(' ');
-          const message = `[${timestamp}] SET_BATTERY_SAVINGSend: ${hexData}\n`;
+          const message = `[${timestamp}] Send SET_BATTERY_SAVING: ${hexData}\n`;
           dataDisplay.textContent += message;
           speedProfileDataDisplay.textContent += message;
           customCommandDataDisplay.textContent += message;
@@ -3763,7 +3922,7 @@
           await writer.write(setVelocityCommand);
           writer.releaseLock();
 
-          const timestamp = new Date().toLocaleTimeString();
+          const timestamp = getJapanTimeString();
           const hexData = Array.from(setVelocityCommand).map(byte => '0x' + byte.toString(16).toUpperCase().padStart(2, '0')).join(' ');
           const message = `[${timestamp}] Send SET_VELOCITY: ${hexData}\n`;
           dataDisplay.textContent += message;
@@ -3835,7 +3994,7 @@
             await writer.write(setVelocityCommand);
             writer.releaseLock();
 
-            const timestamp = new Date().toLocaleTimeString();
+            const timestamp = getJapanTimeString();
             const hexData = Array.from(setVelocityCommand).map(byte => '0x' + byte.toString(16).toUpperCase().padStart(2, '0')).join(' ');
             const message = `[${timestamp}] Send SET_VELOCITY (Continuous): ${hexData}\n`;
             dataDisplay.textContent += message;
