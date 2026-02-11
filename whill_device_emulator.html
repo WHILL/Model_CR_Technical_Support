@@ -1,0 +1,1543 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WHILL デバイスエミュレーター</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #0075B8 0%, #0056a3 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            padding: 30px;
+        }
+
+        .connection-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border: 2px solid #e9ecef;
+        }
+
+        .connection-section h2 {
+            color: #0075B8;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        .connection-controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #0075B8 0%, #0056a3 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 117, 184, 0.3);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(220, 53, 69, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .status-connected {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status-disconnected {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .status-connected .status-dot {
+            background: #28a745;
+        }
+
+        .status-disconnected .status-dot {
+            background: #dc3545;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .data-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .command-display, .device-status {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 25px;
+            border: 2px solid #e9ecef;
+        }
+
+        .command-display h3, .device-status h3 {
+            color: #0075B8;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .data-display {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            border: 1px solid #4a5568;
+        }
+
+        .device-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .info-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+            text-align: center;
+        }
+
+        .info-card h4 {
+            color: #0075B8;
+            margin-bottom: 8px;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .info-card .value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #495057;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+
+        .clearfix::after {
+            content: "";
+            display: table;
+            clear: both;
+        }
+
+        /* エミュレーター設定セクション */
+        .emulator-settings {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border: 2px solid #e9ecef;
+        }
+
+        .settings-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .settings-panel {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            border: 1px solid #dee2e6;
+        }
+
+        .settings-panel h3 {
+            color: #0075B8;
+            margin-bottom: 20px;
+            font-size: 1.2em;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 10px;
+        }
+
+        .input-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .input-group label {
+            font-weight: 600;
+            color: #495057;
+            font-size: 0.9em;
+        }
+
+        .input-group input,
+        .input-group select {
+            padding: 8px 12px;
+            border: 2px solid #dee2e6;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        .input-group input:focus,
+        .input-group select:focus {
+            outline: none;
+            border-color: #0075B8;
+        }
+
+        /* スピードプロファイルタブ */
+        .speed-profile-tabs {
+            margin-top: 15px;
+        }
+
+        .tab-buttons {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .tab-button {
+            padding: 8px 15px;
+            border: 2px solid #dee2e6;
+            background: white;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .tab-button:hover {
+            border-color: #0075B8;
+            color: #0075B8;
+        }
+
+        .tab-button.active {
+            background: #0075B8;
+            color: white;
+            border-color: #0075B8;
+        }
+
+        .speed-profile-content {
+            position: relative;
+        }
+
+        .speed-profile-tab {
+            display: none;
+        }
+
+        .speed-profile-tab.active {
+            display: block;
+        }
+
+        @media (max-width: 1024px) {
+            .settings-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .data-section {
+                grid-template-columns: 1fr;
+            }
+            
+            .connection-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>WHILL デバイスエミュレーター</h1>
+            <p>シリアル通信による制御コマンド受信と応答データ送信</p>
+        </div>
+
+        <div class="main-content">
+            <!-- 接続セクション -->
+            <div class="connection-section">
+                <h2>🔌 シリアルポート接続</h2>
+                <div class="connection-controls">
+                    <button id="connect-btn" class="btn btn-primary">接続</button>
+                    <button id="disconnect-btn" class="btn btn-danger" disabled style="display: none;">切断</button>
+                    <div id="connection-status" class="status-indicator status-disconnected" style="display: none;">
+                        <div class="status-dot"></div>
+                        <span>未接続</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- データ表示セクション -->
+            <div class="data-section" id="data-section" style="display: none;">
+                <!-- 受信コマンド表示 -->
+                <div class="command-display">
+                    <h3>📥 受信コマンド</h3>
+                    <div id="command-display" class="data-display">コマンドの受信を待機中...</div>
+                    <div class="controls">
+                        <button id="clear-commands" class="btn btn-secondary">クリア</button>
+                    </div>
+                </div>
+
+                <!-- デバイス状態表示 -->
+                <div class="device-status">
+                    <h3>📊 デバイス状態</h3>
+                    <div class="device-info">
+                        <div class="info-card">
+                            <h4>電源状態</h4>
+                            <div class="value" id="power-status">OFF</div>
+                        </div>
+                        <div class="info-card">
+                            <h4>バッテリー</h4>
+                            <div class="value" id="battery-level">85%</div>
+                        </div>
+                        <div class="info-card">
+                            <h4>スピードモード</h4>
+                            <div class="value" id="speed-mode">1</div>
+                        </div>
+                        <div class="info-card">
+                            <h4>エラーコード</h4>
+                            <div class="value" id="error-code">0x00</div>
+                        </div>
+                        <div class="info-card">
+                            <h4>ジョイスティック</h4>
+                            <div class="value" id="joystick-status">停止</div>
+                        </div>
+                        <div class="info-card">
+                            <h4>データ送信</h4>
+                            <div class="value" id="data-sending">停止中</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- エミュレーター設定セクション -->
+            <div class="emulator-settings" id="emulator-settings" style="display: none;">
+                <div class="settings-grid">
+                    <!-- モーター状態設定 -->
+                    <div class="settings-panel">
+                        <h3>🔧 モーター状態設定</h3>
+                        <div class="input-grid">
+                            <div class="input-group">
+                                <label for="emulator-battery-saving">バッテリー節約レベル:</label>
+                                <input type="number" id="emulator-battery-saving" min="0" max="255" value="0">
+                            </div>
+                            <div class="input-group">
+                                <label for="emulator-buzzer">ブザー:</label>
+                                <select id="emulator-buzzer">
+                                    <option value="0">OFF</option>
+                                    <option value="1">ON</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <label for="emulator-joystick-forward">ジョイスティック前後:</label>
+                                <input type="number" id="emulator-joystick-forward" min="-100" max="100" value="0">
+                            </div>
+                            <div class="input-group">
+                                <label for="emulator-joystick-turn">ジョイスティック左右:</label>
+                                <input type="number" id="emulator-joystick-turn" min="-100" max="100" value="0">
+                            </div>
+                            <div class="input-group">
+                                <label for="emulator-battery-level">バッテリーレベル:</label>
+                                <input type="number" id="emulator-battery-level" min="0" max="100" value="85">
+                            </div>
+                            <div class="input-group">
+                                <label for="emulator-battery-current">バッテリー電流:</label>
+                                <input type="number" id="emulator-battery-current" min="-32768" max="32767" value="0">
+                            </div>
+                            <div class="input-group">
+                                <label for="emulator-motor-angle-right">右モーター角度:</label>
+                                <input type="number" id="emulator-motor-angle-right" min="-32768" max="32767" value="0">
+                            </div>
+                            <div class="input-group">
+                                <label for="emulator-motor-angle-left">左モーター角度:</label>
+                                <input type="number" id="emulator-motor-angle-left" min="-32768" max="32767" value="0">
+                            </div>
+                            <div class="input-group">
+                                <label for="emulator-motor-speed-right">右モーター速度:</label>
+                                <input type="number" id="emulator-motor-speed-right" min="-32768" max="32767" value="0">
+                            </div>
+                            <div class="input-group">
+                                <label for="emulator-motor-speed-left">左モーター速度:</label>
+                                <input type="number" id="emulator-motor-speed-left" min="-32768" max="32767" value="0">
+                            </div>
+                            <div class="input-group">
+                                <label for="emulator-power">電源:</label>
+                                <select id="emulator-power">
+                                    <option value="0">OFF</option>
+                                    <option value="1">ON</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <label for="emulator-speed-mode">スピードモード:</label>
+                                <input type="number" id="emulator-speed-mode" min="0" max="255" value="1">
+                            </div>
+                            <div class="input-group">
+                                <label for="emulator-error-code">エラーコード:</label>
+                                <input type="number" id="emulator-error-code" min="0" max="255" value="0">
+                            </div>
+                            <div class="input-group">
+                                <label for="emulator-angle-counter">角度検出カウンタ:</label>
+                                <input type="number" id="emulator-angle-counter" min="0" max="255" value="172">
+                            </div>
+                            <div class="input-group">
+                                <label for="emulator-version-major">バージョン Major:</label>
+                                <input type="number" id="emulator-version-major" min="0" max="255" value="1">
+                            </div>
+                            <div class="input-group">
+                                <label for="emulator-version-minor">バージョン Minor:</label>
+                                <input type="number" id="emulator-version-minor" min="0" max="255" value="0">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- スピードプロファイル設定 -->
+                    <div class="settings-panel">
+                        <h3>⚙️ スピードプロファイル設定</h3>
+                        <div class="speed-profile-tabs">
+                            <div class="tab-buttons">
+                                <button class="tab-button active" onclick="switchSpeedProfileTab(0)">Mode 0</button>
+                                <button class="tab-button" onclick="switchSpeedProfileTab(1)">Mode 1</button>
+                                <button class="tab-button" onclick="switchSpeedProfileTab(2)">Mode 2</button>
+                                <button class="tab-button" onclick="switchSpeedProfileTab(3)">Mode 3</button>
+                                <button class="tab-button" onclick="switchSpeedProfileTab(4)">Mode 4</button>
+                                <button class="tab-button" onclick="switchSpeedProfileTab(5)">Mode 5</button>
+                            </div>
+                            
+                            <div class="speed-profile-content">
+                                <div id="speed-profile-0" class="speed-profile-tab active">
+                                    <div class="input-grid">
+                                        <div class="input-group">
+                                            <label>F_M1 (前進最大速度1):</label>
+                                            <input type="number" id="f-m1-0" min="0" max="255" value="100">
+                                        </div>
+                                        <div class="input-group">
+                                            <label>F_A1 (前進加速度1):</label>
+                                            <input type="number" id="f-a1-0" min="0" max="255" value="50">
+                                        </div>
+                                        <div class="input-group">
+                                            <label>F_D1 (前進減速度1):</label>
+                                            <input type="number" id="f-d1-0" min="0" max="255" value="50">
+                                        </div>
+                                        <div class="input-group">
+                                            <label>R_M1 (後退最大速度1):</label>
+                                            <input type="number" id="r-m1-0" min="0" max="255" value="100">
+                                        </div>
+                                        <div class="input-group">
+                                            <label>R_A1 (後退加速度1):</label>
+                                            <input type="number" id="r-a1-0" min="0" max="255" value="50">
+                                        </div>
+                                        <div class="input-group">
+                                            <label>R_D1 (後退減速度1):</label>
+                                            <input type="number" id="r-d1-0" min="0" max="255" value="50">
+                                        </div>
+                                        <div class="input-group">
+                                            <label>T_M1 (旋回最大速度1):</label>
+                                            <input type="number" id="t-m1-0" min="0" max="255" value="100">
+                                        </div>
+                                        <div class="input-group">
+                                            <label>T_A1 (旋回加速度1):</label>
+                                            <input type="number" id="t-a1-0" min="0" max="255" value="50">
+                                        </div>
+                                        <div class="input-group">
+                                            <label>T_D1 (旋回減速度1):</label>
+                                            <input type="number" id="t-d1-0" min="0" max="255" value="50">
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Mode 1-5のタブも同様に作成 -->
+                                <div id="speed-profile-1" class="speed-profile-tab">
+                                    <div class="input-grid">
+                                        <div class="input-group"><label>F_M1:</label><input type="number" id="f-m1-1" min="0" max="255" value="120"></div>
+                                        <div class="input-group"><label>F_A1:</label><input type="number" id="f-a1-1" min="0" max="255" value="60"></div>
+                                        <div class="input-group"><label>F_D1:</label><input type="number" id="f-d1-1" min="0" max="255" value="60"></div>
+                                        <div class="input-group"><label>R_M1:</label><input type="number" id="r-m1-1" min="0" max="255" value="120"></div>
+                                        <div class="input-group"><label>R_A1:</label><input type="number" id="r-a1-1" min="0" max="255" value="60"></div>
+                                        <div class="input-group"><label>R_D1:</label><input type="number" id="r-d1-1" min="0" max="255" value="60"></div>
+                                        <div class="input-group"><label>T_M1:</label><input type="number" id="t-m1-1" min="0" max="255" value="120"></div>
+                                        <div class="input-group"><label>T_A1:</label><input type="number" id="t-a1-1" min="0" max="255" value="60"></div>
+                                        <div class="input-group"><label>T_D1:</label><input type="number" id="t-d1-1" min="0" max="255" value="60"></div>
+                                    </div>
+                                </div>
+                                
+                                <div id="speed-profile-2" class="speed-profile-tab">
+                                    <div class="input-grid">
+                                        <div class="input-group"><label>F_M1:</label><input type="number" id="f-m1-2" min="0" max="255" value="80"></div>
+                                        <div class="input-group"><label>F_A1:</label><input type="number" id="f-a1-2" min="0" max="255" value="40"></div>
+                                        <div class="input-group"><label>F_D1:</label><input type="number" id="f-d1-2" min="0" max="255" value="40"></div>
+                                        <div class="input-group"><label>R_M1:</label><input type="number" id="r-m1-2" min="0" max="255" value="80"></div>
+                                        <div class="input-group"><label>R_A1:</label><input type="number" id="r-a1-2" min="0" max="255" value="40"></div>
+                                        <div class="input-group"><label>R_D1:</label><input type="number" id="r-d1-2" min="0" max="255" value="40"></div>
+                                        <div class="input-group"><label>T_M1:</label><input type="number" id="t-m1-2" min="0" max="255" value="80"></div>
+                                        <div class="input-group"><label>T_A1:</label><input type="number" id="t-a1-2" min="0" max="255" value="40"></div>
+                                        <div class="input-group"><label>T_D1:</label><input type="number" id="t-d1-2" min="0" max="255" value="40"></div>
+                                    </div>
+                                </div>
+                                
+                                <div id="speed-profile-3" class="speed-profile-tab">
+                                    <div class="input-grid">
+                                        <div class="input-group"><label>F_M1:</label><input type="number" id="f-m1-3" min="0" max="255" value="60"></div>
+                                        <div class="input-group"><label>F_A1:</label><input type="number" id="f-a1-3" min="0" max="255" value="30"></div>
+                                        <div class="input-group"><label>F_D1:</label><input type="number" id="f-d1-3" min="0" max="255" value="30"></div>
+                                        <div class="input-group"><label>R_M1:</label><input type="number" id="r-m1-3" min="0" max="255" value="60"></div>
+                                        <div class="input-group"><label>R_A1:</label><input type="number" id="r-a1-3" min="0" max="255" value="30"></div>
+                                        <div class="input-group"><label>R_D1:</label><input type="number" id="r-d1-3" min="0" max="255" value="30"></div>
+                                        <div class="input-group"><label>T_M1:</label><input type="number" id="t-m1-3" min="0" max="255" value="60"></div>
+                                        <div class="input-group"><label>T_A1:</label><input type="number" id="t-a1-3" min="0" max="255" value="30"></div>
+                                        <div class="input-group"><label>T_D1:</label><input type="number" id="t-d1-3" min="0" max="255" value="30"></div>
+                                    </div>
+                                </div>
+                                
+                                <div id="speed-profile-4" class="speed-profile-tab">
+                                    <div class="input-grid">
+                                        <div class="input-group"><label>F_M1:</label><input type="number" id="f-m1-4" min="0" max="255" value="40"></div>
+                                        <div class="input-group"><label>F_A1:</label><input type="number" id="f-a1-4" min="0" max="255" value="20"></div>
+                                        <div class="input-group"><label>F_D1:</label><input type="number" id="f-d1-4" min="0" max="255" value="20"></div>
+                                        <div class="input-group"><label>R_M1:</label><input type="number" id="r-m1-4" min="0" max="255" value="40"></div>
+                                        <div class="input-group"><label>R_A1:</label><input type="number" id="r-a1-4" min="0" max="255" value="20"></div>
+                                        <div class="input-group"><label>R_D1:</label><input type="number" id="r-d1-4" min="0" max="255" value="20"></div>
+                                        <div class="input-group"><label>T_M1:</label><input type="number" id="t-m1-4" min="0" max="255" value="40"></div>
+                                        <div class="input-group"><label>T_A1:</label><input type="number" id="t-a1-4" min="0" max="255" value="20"></div>
+                                        <div class="input-group"><label>T_D1:</label><input type="number" id="t-d1-4" min="0" max="255" value="20"></div>
+                                    </div>
+                                </div>
+                                
+                                <div id="speed-profile-5" class="speed-profile-tab">
+                                    <div class="input-grid">
+                                        <div class="input-group"><label>F_M1:</label><input type="number" id="f-m1-5" min="0" max="255" value="20"></div>
+                                        <div class="input-group"><label>F_A1:</label><input type="number" id="f-a1-5" min="0" max="255" value="10"></div>
+                                        <div class="input-group"><label>F_D1:</label><input type="number" id="f-d1-5" min="0" max="255" value="10"></div>
+                                        <div class="input-group"><label>R_M1:</label><input type="number" id="r-m1-5" min="0" max="255" value="20"></div>
+                                        <div class="input-group"><label>R_A1:</label><input type="number" id="r-a1-5" min="0" max="255" value="10"></div>
+                                        <div class="input-group"><label>R_D1:</label><input type="number" id="r-d1-5" min="0" max="255" value="10"></div>
+                                        <div class="input-group"><label>T_M1:</label><input type="number" id="t-m1-5" min="0" max="255" value="20"></div>
+                                        <div class="input-group"><label>T_A1:</label><input type="number" id="t-a1-5" min="0" max="255" value="10"></div>
+                                        <div class="input-group"><label>T_D1:</label><input type="number" id="t-d1-5" min="0" max="255" value="10"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // グローバル変数
+        let port = null;
+        let reader = null;
+        let writer = null;
+        let isConnected = false;
+        let dataSendingInterval = null;
+        let receivedBuffer = new Uint8Array(0); // 受信データバッファ
+        let deviceState = {
+            power: false,
+            battery: 85,
+            speedMode: 1,
+            errorCode: 0x00,
+            joystickForward: 0,
+            joystickTurn: 0,
+            motorAngleRight: 0,
+            motorAngleLeft: 0,
+            motorSpeedRight: 0,
+            motorSpeedLeft: 0,
+            batteryCurrent: 0,
+            buzzer: false,
+            batterySaving: 0,
+            currentDataSet: 1
+        };
+
+        // DOM要素
+        const connectBtn = document.getElementById('connect-btn');
+        const disconnectBtn = document.getElementById('disconnect-btn');
+        const connectionStatus = document.getElementById('connection-status');
+        const dataSection = document.getElementById('data-section');
+        const emulatorSettings = document.getElementById('emulator-settings');
+        const commandDisplay = document.getElementById('command-display');
+        const clearCommandsBtn = document.getElementById('clear-commands');
+
+        // デバイス状態表示要素
+        const powerStatus = document.getElementById('power-status');
+        const batteryLevel = document.getElementById('battery-level');
+        const speedMode = document.getElementById('speed-mode');
+        const errorCode = document.getElementById('error-code');
+        const joystickStatus = document.getElementById('joystick-status');
+        const dataSending = document.getElementById('data-sending');
+
+        // 初期化
+        document.addEventListener('DOMContentLoaded', async () => {
+            setupEventListeners();
+        });
+
+        // イベントリスナー設定
+        function setupEventListeners() {
+            connectBtn.addEventListener('click', connectToPort);
+            disconnectBtn.addEventListener('click', disconnectFromPort);
+            clearCommandsBtn.addEventListener('click', clearCommands);
+        }
+
+
+        // ポート接続
+        async function connectToPort() {
+            try {
+                if (!navigator.serial) {
+                    throw new Error('Web Serial APIがサポートされていません');
+                }
+
+                // ポート選択を要求
+                port = await navigator.serial.requestPort();
+                
+                // ポート設定
+                await port.open({
+                    baudRate: 38400,
+                    dataBits: 8,
+                    stopBits: 1,
+                    parity: 'none',
+                    flowControl: 'none'
+                });
+
+                isConnected = true;
+                updateConnectionStatus(true);
+                showDataSection(true);
+                showEmulatorSettings(true);
+                
+                // リーダーとライターを取得
+                reader = port.readable.getReader();
+                writer = port.writable.getWriter();
+
+                // データ受信開始
+                startReading();
+
+                logCommand('エミュレーター接続完了 (38400bps)', 'info');
+                logCommand('制御コマンドの受信を待機中...', 'info');
+
+            } catch (error) {
+                console.error('接続エラー:', error);
+                logCommand(`接続エラー: ${error.message}`, 'error');
+            }
+        }
+
+        // ポート切断
+        async function disconnectFromPort() {
+            try {
+                if (dataSendingInterval) {
+                    clearInterval(dataSendingInterval);
+                    dataSendingInterval = null;
+                }
+
+                if (reader) {
+                    await reader.cancel();
+                    reader.releaseLock();
+                    reader = null;
+                }
+
+                if (writer) {
+                    writer.releaseLock();
+                    writer = null;
+                }
+
+                if (port) {
+                    await port.close();
+                    port = null;
+                }
+
+                isConnected = false;
+                updateConnectionStatus(false);
+                showDataSection(false);
+                showEmulatorSettings(false);
+                updateDeviceStatus('data-sending', '停止中');
+                
+                // 受信バッファをクリア
+                receivedBuffer = new Uint8Array(0);
+
+                logCommand('エミュレーター切断完了', 'info');
+
+            } catch (error) {
+                console.error('切断エラー:', error);
+                logCommand(`切断エラー: ${error.message}`, 'error');
+            }
+        }
+
+        // 接続状態更新
+        function updateConnectionStatus(connected) {
+            if (connected) {
+                connectionStatus.className = 'status-indicator status-connected';
+                connectionStatus.innerHTML = '<div class="status-dot"></div><span>接続中</span>';
+                connectionStatus.style.display = 'inline-flex';
+                connectBtn.style.display = 'none';
+                disconnectBtn.style.display = 'inline-block';
+                disconnectBtn.disabled = false;
+            } else {
+                connectionStatus.className = 'status-indicator status-disconnected';
+                connectionStatus.innerHTML = '<div class="status-dot"></div><span>未接続</span>';
+                connectionStatus.style.display = 'none';
+                connectBtn.style.display = 'inline-block';
+                disconnectBtn.style.display = 'none';
+                connectBtn.disabled = false;
+            }
+        }
+
+        // データセクション表示/非表示
+        function showDataSection(show) {
+            if (show) {
+                dataSection.style.display = 'grid';
+            } else {
+                dataSection.style.display = 'none';
+            }
+        }
+
+        // エミュレーター設定セクション表示/非表示
+        function showEmulatorSettings(show) {
+            if (show) {
+                emulatorSettings.style.display = 'block';
+            } else {
+                emulatorSettings.style.display = 'none';
+            }
+        }
+
+        // データ受信開始
+        async function startReading() {
+            try {
+                while (isConnected && reader) {
+                    const { value, done } = await reader.read();
+                    
+                    if (done) {
+                        logCommand('データストリーム終了', 'info');
+                        break;
+                    }
+
+                    if (value) {
+                        await processReceivedData(value);
+                    }
+                }
+            } catch (error) {
+                if (isConnected) {
+                    console.error('受信エラー:', error);
+                    // エラーの詳細情報を表示
+                    let errorMessage = error.message;
+                    if (error.name === 'NetworkError') {
+                        errorMessage = '通信エラー: デバイスとの接続が失われました';
+                    } else if (error.name === 'NotReadableError') {
+                        errorMessage = '読み取りエラー: ポートが読み取り可能ではありません';
+                    } else if (error.message.includes('Break received')) {
+                        errorMessage = '通信設定エラー: ボーレートが一致していない可能性があります';
+                    }
+                    logCommand(`受信エラー: ${errorMessage}`, 'error');
+                }
+            }
+        }
+
+        // 受信データ処理
+        async function processReceivedData(data) {
+            const hexData = Array.from(data).map(byte => '0x' + byte.toString(16).toUpperCase().padStart(2, '0')).join(' ');
+            logCommand(`受信: ${hexData}`, 'received');
+
+            // 受信データをバッファに追加
+            const newBuffer = new Uint8Array(receivedBuffer.length + data.length);
+            newBuffer.set(receivedBuffer);
+            newBuffer.set(data, receivedBuffer.length);
+            receivedBuffer = newBuffer;
+
+            // 完全なコマンドを検出して処理
+            await processBufferedCommands();
+        }
+
+        // バッファされたコマンドを処理
+        async function processBufferedCommands() {
+            while (receivedBuffer.length > 0) {
+                // ヘッダー（0xAF）を探す
+                let headerIndex = -1;
+                for (let i = 0; i < receivedBuffer.length; i++) {
+                    if (receivedBuffer[i] === 0xAF) {
+                        headerIndex = i;
+                        break;
+                    }
+                }
+
+                if (headerIndex === -1) {
+                    // ヘッダーが見つからない場合、バッファをクリア
+                    receivedBuffer = new Uint8Array(0);
+                    break;
+                }
+
+                // ヘッダーより前のデータを削除
+                if (headerIndex > 0) {
+                    receivedBuffer = receivedBuffer.slice(headerIndex);
+                }
+
+                // コマンド長を判定
+                if (receivedBuffer.length < 2) {
+                    // データ長が不足
+                    break;
+                }
+
+                const command = receivedBuffer[1];
+                let expectedLength = 0;
+
+                // コマンド別の期待される長さを設定
+                switch (command) {
+                    case 0x02: // STOP_SENDING_DATA または バージョン取得
+                        // サブコマンドで判定
+                        if (receivedBuffer.length >= 3) {
+                            const subCommand = receivedBuffer[2];
+                            if (subCommand === 0x01) {
+                                expectedLength = 4; // STOP_SENDING_DATA
+                            } else if (subCommand === 0x07) {
+                                expectedLength = 4; // バージョン取得
+                            } else {
+                                expectedLength = 4; // デフォルト
+                            }
+                        } else {
+                            expectedLength = 4; // デフォルト
+                        }
+                        break;
+                    case 0x03: // SET_POWER
+                        expectedLength = 5;
+                        break;
+                    case 0x04: // SET_BATTERY_SAVING
+                        expectedLength = 6;
+                        break;
+                    case 0x05: // SET_JOYSTICK
+                        expectedLength = 7;
+                        break;
+                    case 0x06: // START_SENDING_DATA
+                        expectedLength = 8;
+                        break;
+                    case 0x07: // SET_VELOCITY
+                        expectedLength = 9;
+                        break;
+                    case 0x0C: // SET_SPEED_PROFILE
+                        expectedLength = 14;
+                        break;
+                    default:
+                        // 未知のコマンドの場合、バッファをクリア
+                        receivedBuffer = new Uint8Array(0);
+                        logCommand(`未知のコマンド: 0x${command.toString(16).toUpperCase()}`, 'warning');
+                        break;
+                }
+
+                if (expectedLength === 0) {
+                    break;
+                }
+
+                // 完全なコマンドが揃っているかチェック
+                if (receivedBuffer.length >= expectedLength) {
+                    // 完全なコマンドを抽出
+                    const commandData = receivedBuffer.slice(0, expectedLength);
+                    
+                    // コマンドを処理
+                    const header = commandData[0];
+                    const cmd = commandData[1];
+                    const subCommand = commandData[2];
+
+                    if (header === 0xAF) {
+                        await handleCommand(cmd, subCommand, commandData);
+                    }
+
+                    // 処理済みのデータをバッファから削除
+                    receivedBuffer = receivedBuffer.slice(expectedLength);
+                } else {
+                    // データが不足している場合、次の受信を待つ
+                    break;
+                }
+            }
+        }
+
+        // コマンド処理
+        async function handleCommand(command, subCommand, data) {
+            try {
+                switch (command) {
+                    case 0x02: // STOP_SENDING_DATA または バージョン取得
+                        if (subCommand === 0x01) {
+                            await handleStopSendingData(data);
+                        } else if (subCommand === 0x07) {
+                            await handleGetVersion(data);
+                        }
+                        break;
+                    case 0x03: // SET_POWER
+                        if (subCommand === 0x02) {
+                            await handleSetPower(data);
+                        }
+                        break;
+                    case 0x06: // START_SENDING_DATA
+                        if (subCommand === 0x00) {
+                            await handleStartSendingData(data);
+                        }
+                        break;
+                    case 0x05: // SET_JOYSTICK
+                        if (subCommand === 0x03) {
+                            await handleSetJoystick(data);
+                        }
+                        break;
+                    case 0x07: // SET_VELOCITY
+                        if (subCommand === 0x08) {
+                            await handleSetVelocity(data);
+                        }
+                        break;
+                    case 0x0C: // SET_SPEED_PROFILE
+                        if (subCommand === 0x04) {
+                            await handleSetSpeedProfile(data);
+                        }
+                        break;
+                    case 0x04: // SET_BATTERY_SAVING
+                        if (subCommand === 0x06) {
+                            await handleSetBatterySaving(data);
+                        }
+                        break;
+                    default:
+                        logCommand(`未対応コマンド: 0x${command.toString(16).toUpperCase()}`, 'warning');
+                }
+            } catch (error) {
+                console.error('コマンド処理エラー:', error);
+                logCommand(`コマンド処理エラー: ${error.message}`, 'error');
+            }
+        }
+
+        // STOP_SENDING_DATAコマンド処理
+        async function handleStopSendingData(data) {
+            if (data.length >= 4) {
+                // STOP_SENDING_DATAコマンドは固定: 0xAF 0x02 0x01 0xAC
+                if (data[0] === 0xAF && data[1] === 0x02 && data[2] === 0x01 && data[3] === 0xAC) {
+                    // 定期データ送信を停止
+                    if (dataSendingInterval) {
+                        clearInterval(dataSendingInterval);
+                        dataSendingInterval = null;
+                    }
+                    
+                    updateDeviceStatus('data-sending', '停止中');
+                    logCommand('STOP_SENDING_DATA: 定期データ送信を停止しました', 'command');
+                } else {
+                    logCommand('STOP_SENDING_DATA: 無効なコマンド形式', 'error');
+                }
+            }
+        }
+
+        // バージョン取得コマンド処理
+        async function handleGetVersion(data) {
+            if (data.length >= 4) {
+                // バージョン取得コマンドは固定: 0xAF 0x02 0x07 0xAA
+                if (data[0] === 0xAF && data[1] === 0x02 && data[2] === 0x07 && data[3] === 0xAA) {
+                    // バージョン情報を送信
+                    await sendVersionData();
+                    logCommand('GET_VERSION: バージョン情報を送信しました', 'command');
+                } else {
+                    logCommand('GET_VERSION: 無効なコマンド形式', 'error');
+                }
+            }
+        }
+
+        // SET_POWERコマンド処理
+        async function handleSetPower(data) {
+            if (data.length >= 5) {
+                const powerState = data[3];
+                const checksum = data[4];
+                
+                // チェックサム検証
+                const calculatedChecksum = data.slice(0, 4).reduce((acc, byte) => acc ^ byte, 0);
+                
+                if (calculatedChecksum === checksum) {
+                    const wasPowerOff = !deviceState.power;
+                    deviceState.power = powerState === 1;
+                    updateDeviceStatus('power-status', deviceState.power ? 'ON' : 'OFF');
+                    
+                    // エミュレーター設定の電源状態を更新
+                    const powerSelect = document.getElementById('emulator-power');
+                    if (powerSelect) {
+                        powerSelect.value = powerState;
+                    }
+                    
+                    // 電源OFFからONになった場合、データ送信が開始されていれば即座に送信
+                    if (wasPowerOff && deviceState.power && dataSendingInterval) {
+                        sendMotorStatusData();
+                    }
+                    
+                    // パワーON応答送信
+                    const response = new Uint8Array([0xAF, 0x02, 0x52, 0xFF]);
+                    await sendData(response);
+                    
+                    logCommand(`SET_POWER: ${deviceState.power ? 'ON' : 'OFF'}`, 'command');
+                } else {
+                    logCommand('SET_POWER: チェックサムエラー', 'error');
+                }
+            }
+        }
+
+        // START_SENDING_DATAコマンド処理
+        async function handleStartSendingData(data) {
+            if (data.length >= 8) {
+                const dataSet = data[3];
+                const intervalHigh = data[4];
+                const intervalLow = data[5];
+                const speedProfile = data[6];
+                const checksum = data[7];
+                
+                // チェックサム検証
+                const calculatedChecksum = data.slice(0, 7).reduce((acc, byte) => acc ^ byte, 0);
+                
+                if (calculatedChecksum === checksum) {
+                    const interval = (intervalHigh << 8) | intervalLow;
+                    deviceState.speedMode = speedProfile;
+                    deviceState.currentDataSet = dataSet; // データセット番号を保存
+                    
+                    updateDeviceStatus('speed-mode', speedProfile);
+                    updateDeviceStatus('data-sending', `送信中 (${interval}ms)`);
+                    
+                    // 定期データ送信開始
+                    startPeriodicDataSending(interval);
+                    
+                    logCommand(`START_SENDING_DATA: データセット=${dataSet}, 間隔=${interval}ms, スピードプロファイル=${speedProfile}`, 'command');
+                } else {
+                    logCommand('START_SENDING_DATA: チェックサムエラー', 'error');
+                }
+            }
+        }
+
+        // SET_JOYSTICKコマンド処理
+        async function handleSetJoystick(data) {
+            if (data.length >= 7) {
+                const bodyPriority = data[3];
+                const forwardBackward = data[4];
+                const leftRight = data[5];
+                const checksum = data[6];
+                
+                // チェックサム検証
+                const calculatedChecksum = data.slice(0, 6).reduce((acc, byte) => acc ^ byte, 0);
+                
+                if (calculatedChecksum === checksum) {
+                    // 符号付き1バイトデータとして変換
+                    const signedForwardBackward = forwardBackward > 127 ? forwardBackward - 256 : forwardBackward;
+                    const signedLeftRight = leftRight > 127 ? leftRight - 256 : leftRight;
+                    
+                    deviceState.joystickForward = forwardBackward;
+                    deviceState.joystickTurn = leftRight;
+                    
+                    const status = (signedForwardBackward === 0 && signedLeftRight === 0) ? '停止' : `前後:${signedForwardBackward}, 左右:${signedLeftRight}`;
+                    updateDeviceStatus('joystick-status', status);
+                    
+                    logCommand(`SET_JOYSTICK: 前後=${signedForwardBackward}, 左右=${signedLeftRight}`, 'command');
+                } else {
+                    logCommand('SET_JOYSTICK: チェックサムエラー', 'error');
+                }
+            }
+        }
+
+        // SET_VELOCITYコマンド処理
+        async function handleSetVelocity(data) {
+            if (data.length >= 9) {
+                const bodyPriority = data[3];
+                const forwardBackwardHigh = data[4];
+                const forwardBackwardLow = data[5];
+                const leftRightHigh = data[6];
+                const leftRightLow = data[7];
+                const checksum = data[8];
+                
+                // チェックサム検証
+                const calculatedChecksum = data.slice(0, 8).reduce((acc, byte) => acc ^ byte, 0);
+                
+                if (calculatedChecksum === checksum) {
+                    // 符号付き2バイトデータとして変換
+                    const forwardBackward = (forwardBackwardHigh << 8) | forwardBackwardLow;
+                    const leftRight = (leftRightHigh << 8) | leftRightLow;
+                    
+                    const signedForwardBackward = forwardBackward > 32767 ? forwardBackward - 65536 : forwardBackward;
+                    const signedLeftRight = leftRight > 32767 ? leftRight - 65536 : leftRight;
+                    
+                    logCommand(`SET_VELOCITY: 前後=${signedForwardBackward}, 左右=${signedLeftRight}`, 'command');
+                } else {
+                    logCommand('SET_VELOCITY: チェックサムエラー', 'error');
+                }
+            }
+        }
+
+        // SET_SPEED_PROFILEコマンド処理
+        async function handleSetSpeedProfile(data) {
+            if (data.length >= 14) {
+                const speedMode = data[3];
+                const checksum = data[data.length - 1];
+                
+                // チェックサム検証
+                const calculatedChecksum = data.slice(0, data.length - 1).reduce((acc, byte) => acc ^ byte, 0);
+                
+                if (calculatedChecksum === checksum) {
+                    // スピードプロファイルの各パラメータを更新
+                    const params = ['f-m1', 'f-a1', 'f-d1', 'r-m1', 'r-a1', 'r-d1', 't-m1', 't-a1', 't-d1'];
+                    params.forEach((param, index) => {
+                        const elementId = `${param}-${speedMode}`;
+                        const element = document.getElementById(elementId);
+                        if (element && data.length > 4 + index) {
+                            element.value = data[4 + index];
+                        }
+                    });
+                    
+                    logCommand(`SET_SPEED_PROFILE: モード=${speedMode}`, 'command');
+                } else {
+                    logCommand('SET_SPEED_PROFILE: チェックサムエラー', 'error');
+                }
+            }
+        }
+
+        // SET_BATTERY_SAVINGコマンド処理
+        async function handleSetBatterySaving(data) {
+            if (data.length >= 6) {
+                const batteryLevel = data[3];
+                const buzzer = data[4];
+                const checksum = data[5];
+                
+                // チェックサム検証
+                const calculatedChecksum = data.slice(0, 5).reduce((acc, byte) => acc ^ byte, 0);
+                
+                if (calculatedChecksum === checksum) {
+                    deviceState.batterySaving = batteryLevel;
+                    deviceState.buzzer = buzzer === 1;
+                    
+                    // エミュレーター設定のバッテリー節約レベルを更新
+                    const batterySavingInput = document.getElementById('emulator-battery-saving');
+                    if (batterySavingInput) {
+                        batterySavingInput.value = batteryLevel;
+                    }
+                    
+                    // エミュレーター設定のブザーを更新
+                    const buzzerSelect = document.getElementById('emulator-buzzer');
+                    if (buzzerSelect) {
+                        buzzerSelect.value = buzzer;
+                    }
+                    
+                    logCommand(`SET_BATTERY_SAVING: レベル=${batteryLevel}, ブザー=${buzzer}`, 'command');
+                } else {
+                    logCommand('SET_BATTERY_SAVING: チェックサムエラー', 'error');
+                }
+            }
+        }
+
+        // 定期データ送信開始
+        function startPeriodicDataSending(interval) {
+            if (dataSendingInterval) {
+                clearInterval(dataSendingInterval);
+            }
+            
+            // 即座に初回送信
+            sendMotorStatusData();
+            
+            // その後、指定間隔で定期送信
+            dataSendingInterval = setInterval(async () => {
+                await sendMotorStatusData();
+            }, interval);
+        }
+
+        // モーター状態データ送信
+        async function sendMotorStatusData() {
+            try {
+                // 電源OFFの場合は送信しない
+                if (!deviceState.power) {
+                    return;
+                }
+                
+                // データセット番号を取得
+                const userInputs = getUserInputValues();
+                const dataSet = getCurrentDataSet();
+                
+                let dataToSend;
+                if (dataSet === 0) {
+                    // データセット=0: スピードプロファイル情報
+                    dataToSend = generateSpeedProfileData();
+                    logCommand(`データセット=0: スピードプロファイルデータを送信`, 'info');
+                } else {
+                    // データセット=1: モーター状態データ
+                    dataToSend = generateMotorStatusData();
+                    logCommand(`データセット=${dataSet}: モーター状態データを送信`, 'info');
+                }
+                
+                await sendData(dataToSend);
+                
+                // デバイス状態を更新
+                updateDeviceStatus('battery-level', `${deviceState.battery}%`);
+                updateDeviceStatus('error-code', `0x${deviceState.errorCode.toString(16).toUpperCase()}`);
+                
+            } catch (error) {
+                console.error('モーター状態データ送信エラー:', error);
+            }
+        }
+
+        // モーター状態データ生成
+        function generateMotorStatusData() {
+            // ユーザー入力値を取得
+            const userInputs = getUserInputValues();
+            
+            // ヘッダー: 0xAF 0x1F 0x01
+            const header = [0xAF, 0x1F, 0x01];
+            
+            // データ部分（29バイト）
+            const data = [
+                userInputs.batterySaving,     // バッテリー節約レベル (4バイト目)
+                userInputs.buzzer,            // ブザー (5バイト目)
+                // ダミーデータ 10バイト (6-15バイト目)
+                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                userInputs.joystickForward,   // ジョイスティック前後 (16バイト目)
+                userInputs.joystickTurn,      // ジョイスティック左右 (17バイト目)
+                userInputs.batteryLevel,      // バッテリーレベル (18バイト目)
+                ...splitToBytes(userInputs.batteryCurrent, 2),   // バッテリー電流 (19-20バイト目)
+                ...splitToSignedBytes(userInputs.motorAngleRight, 2),  // 右モーター角度 (21-22バイト目)
+                ...splitToSignedBytes(userInputs.motorAngleLeft, 2),   // 左モーター角度 (23-24バイト目)
+                ...splitToSignedBytes(userInputs.motorSpeedRight, 2),  // 右モーター速度 (25-26バイト目)
+                ...splitToSignedBytes(userInputs.motorSpeedLeft, 2),   // 左モーター速度 (27-28バイト目)
+                userInputs.power,             // 電源 (29バイト目)
+                userInputs.speedMode,         // スピードモード (30バイト目)
+                userInputs.errorCode,         // エラーコード (31バイト目)
+                userInputs.angleCounter       // 角度検出カウンタ (32バイト目)
+            ];
+            
+            // チェックサム計算（ヘッダー + データのXOR）
+            let checksum = 0;
+            [...header, ...data].forEach(byte => {
+                checksum ^= byte;
+            });
+            
+            // チェックサムを追加
+            const fullData = [...header, ...data, checksum];
+            
+            return new Uint8Array(fullData);
+        }
+
+        // 現在のデータセット番号を取得
+        function getCurrentDataSet() {
+            // 最後に受信したSTART_SENDING_DATAコマンドのデータセット番号を返す
+            return deviceState.currentDataSet !== undefined ? deviceState.currentDataSet : 1;
+        }
+
+        // スピードプロファイルデータ生成（データセット=0用）
+        function generateSpeedProfileData() {
+            // START_SENDING_DATAコマンドで指定されたスピードプロファイル番号を使用
+            const speedProfileNumber = deviceState.speedMode; // START_SENDING_DATAで受信したスピードプロファイル番号
+            const speedMode = speedProfileNumber; // スピードモード = スピードプロファイル番号（1:1対応）
+            
+            logCommand(`スピードプロファイル番号=${speedProfileNumber} → スピードモード=${speedMode} (Mode ${speedMode})`, 'info');
+            
+            // スピードプロファイルデータを取得（スピードモードに対応するプロファイル）
+            const profileData = getSpeedProfileData(speedMode);
+            
+            // ヘッダー: 0xAF + データ長 (12バイト)
+            const dataLength = 12; // データセット番号(1) + スピードモード(1) + プロファイル(9) + チェックサム(1)
+            const header = [0xAF, dataLength];
+            
+            // データ部分
+            const data = [
+                0x00,                    // データセット番号 (0)
+                speedMode,               // スピードモード (スピードプロファイル番号 - 1)
+                ...profileData           // スピードプロファイル (9バイト)
+            ];
+            
+            // チェックサム計算（ヘッダー + データのXOR）
+            let checksum = 0;
+            [...header, ...data].forEach(byte => {
+                checksum ^= byte;
+            });
+            
+            // チェックサムを追加
+            const fullData = [...header, ...data, checksum];
+            
+            return new Uint8Array(fullData);
+        }
+
+        // 指定されたスピードモードのプロファイルデータを取得
+        function getSpeedProfileData(speedMode) {
+            const profileData = [];
+            
+            // スピードプロファイルの各パラメータを取得
+            const params = ['f-m1', 'f-a1', 'f-d1', 'r-m1', 'r-a1', 'r-d1', 't-m1', 't-a1', 't-d1'];
+            
+            params.forEach(param => {
+                const elementId = `${param}-${speedMode}`;
+                const element = document.getElementById(elementId);
+                const value = element ? (parseInt(element.value) || 0) : 0;
+                profileData.push(value);
+            });
+            
+            return profileData;
+        }
+
+        // ユーザー入力値を取得
+        function getUserInputValues() {
+            return {
+                batterySaving: parseInt(document.getElementById('emulator-battery-saving').value) || 0,
+                buzzer: parseInt(document.getElementById('emulator-buzzer').value) || 0,
+                joystickForward: parseInt(document.getElementById('emulator-joystick-forward').value) || 0,
+                joystickTurn: parseInt(document.getElementById('emulator-joystick-turn').value) || 0,
+                batteryLevel: parseInt(document.getElementById('emulator-battery-level').value) || 85,
+                batteryCurrent: parseInt(document.getElementById('emulator-battery-current').value) || 0,
+                motorAngleRight: parseInt(document.getElementById('emulator-motor-angle-right').value) || 0,
+                motorAngleLeft: parseInt(document.getElementById('emulator-motor-angle-left').value) || 0,
+                motorSpeedRight: parseInt(document.getElementById('emulator-motor-speed-right').value) || 0,
+                motorSpeedLeft: parseInt(document.getElementById('emulator-motor-speed-left').value) || 0,
+                power: parseInt(document.getElementById('emulator-power').value) || 0,
+                speedMode: (() => {
+                    const value = parseInt(document.getElementById('emulator-speed-mode').value);
+                    return isNaN(value) ? 1 : value;
+                })(),
+                errorCode: parseInt(document.getElementById('emulator-error-code').value) || 0,
+                angleCounter: parseInt(document.getElementById('emulator-angle-counter').value) || 172
+            };
+        }
+
+        // 数値をバイト配列に分割（符号なし）
+        function splitToBytes(value, byteCount) {
+            const bytes = [];
+            for (let i = 0; i < byteCount; i++) {
+                bytes.push((value >> (8 * (byteCount - 1 - i))) & 0xFF);
+            }
+            return bytes;
+        }
+
+        // 符号付き数値をバイト配列に分割
+        function splitToSignedBytes(value, byteCount) {
+            // 符号付き16ビット整数として処理
+            if (byteCount === 2) {
+                const signedValue = value < 0 ? (value + 0x10000) : value;
+                return [
+                    (signedValue >> 8) & 0xFF,  // 上位バイト
+                    signedValue & 0xFF           // 下位バイト
+                ];
+            }
+            return splitToBytes(value, byteCount);
+        }
+
+        // バージョンデータ送信
+        async function sendVersionData() {
+            try {
+                const major = parseInt(document.getElementById('emulator-version-major').value) || 1;
+                const minor = parseInt(document.getElementById('emulator-version-minor').value) || 0;
+                
+                // バージョン応答データ: 0xAF 0x03 Major Minor checksum
+                const header = [0xAF, 0x03];
+                const data = [major, minor];
+                
+                // チェックサム計算
+                let checksum = 0;
+                [...header, ...data].forEach(byte => {
+                    checksum ^= byte;
+                });
+                
+                const versionData = new Uint8Array([...header, ...data, checksum]);
+                await sendData(versionData);
+                
+                logCommand(`バージョン情報: Major=${major}, Minor=${minor}`, 'info');
+                
+            } catch (error) {
+                console.error('バージョンデータ送信エラー:', error);
+                logCommand(`バージョンデータ送信エラー: ${error.message}`, 'error');
+            }
+        }
+
+        // データ送信
+        async function sendData(data) {
+            if (writer && isConnected) {
+                await writer.write(data);
+                const hexData = Array.from(data).map(byte => '0x' + byte.toString(16).toUpperCase().padStart(2, '0')).join(' ');
+                logCommand(`送信: ${hexData}`, 'sent');
+            }
+        }
+
+        // ログ表示（最大行数制限付き）
+        function logCommand(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const prefix = `[${timestamp}]`;
+            
+            let formattedMessage = `${prefix} ${message}\n`;
+            
+            // タイプに応じて色分け（CSSクラスで実装可能）
+            if (type === 'error') {
+                formattedMessage = `${prefix} ❌ ${message}\n`;
+            } else if (type === 'warning') {
+                formattedMessage = `${prefix} ⚠️ ${message}\n`;
+            } else if (type === 'command') {
+                formattedMessage = `${prefix} 📋 ${message}\n`;
+            } else if (type === 'received') {
+                formattedMessage = `${prefix} 📥 ${message}\n`;
+            } else if (type === 'sent') {
+                formattedMessage = `${prefix} 📤 ${message}\n`;
+            } else {
+                formattedMessage = `${prefix} ℹ️ ${message}\n`;
+            }
+            
+            // 現在のログを取得
+            let currentLogs = commandDisplay.textContent;
+            
+            // 新しいログを追加
+            currentLogs += formattedMessage;
+            
+            // 最大行数制限（300行）
+            const maxLines = 300;
+            const lines = currentLogs.split('\n');
+            
+            if (lines.length > maxLines) {
+                // 古いログを削除（最初の50行を削除）
+                const linesToRemove = 50;
+                const remainingLines = lines.slice(linesToRemove);
+                currentLogs = remainingLines.join('\n');
+            }
+            
+            commandDisplay.textContent = currentLogs;
+            commandDisplay.scrollTop = commandDisplay.scrollHeight;
+        }
+
+        // デバイス状態更新
+        function updateDeviceStatus(elementId, value) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.textContent = value;
+            }
+        }
+
+        // コマンド表示クリア
+        function clearCommands() {
+            commandDisplay.textContent = 'コマンドの受信を待機中...\n';
+        }
+
+        // スピードプロファイルタブ切り替え
+        function switchSpeedProfileTab(mode) {
+            // 全てのタブボタンからactiveクラスを削除
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // 全てのタブコンテンツからactiveクラスを削除
+            document.querySelectorAll('.speed-profile-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // 選択されたタブボタンにactiveクラスを追加
+            document.querySelector(`button[onclick="switchSpeedProfileTab(${mode})"]`).classList.add('active');
+            
+            // 選択されたタブコンテンツにactiveクラスを追加
+            document.getElementById(`speed-profile-${mode}`).classList.add('active');
+        }
+
+        // ページ離脱時のクリーンアップ
+        window.addEventListener('beforeunload', async () => {
+            if (isConnected) {
+                await disconnectFromPort();
+            }
+        });
+    </script>
+</body>
+</html>
