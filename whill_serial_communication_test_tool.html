@@ -645,18 +645,24 @@
     /* Disconnect Button Styles */
     .disconnect-button {
       position: absolute;
-      top: 10px;
+      top: -2px;
       right: 10px;
       background-color: #dc3545;
       color: white;
       border: none;
-      padding: 8px 16px;
+      padding: 0 16px;
       border-radius: 5px;
       font-size: 12pt;
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       cursor: pointer;
       box-shadow: 0 2px 4px rgba(220, 53, 69, 0.3);
       transition: all 0.3s ease;
       z-index: 1000;
+      box-sizing: border-box;
+      line-height: 1;
     }
 
     .disconnect-button:hover {
@@ -669,19 +675,25 @@
     .device-info-display {
       position: absolute;
       top: 2px;
-      right: 160px;
+      right: 145px;
       background-color: rgba(255, 255, 255, 0.95);
       border-radius: 5px;
-      padding: 8px 12px;
-      font-size: 10pt;
+      padding: 0;
+      font-size: 9pt;
       color: #0075B8;
       font-weight: bold;
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       z-index: 999;
-      min-width: 120px;
+      width: 70px;
+      height: 50px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
       text-align: center;
       cursor: pointer;
       transition: all 0.2s ease;
+      box-sizing: border-box;
     }
 
     .device-info-display:hover {
@@ -700,8 +712,56 @@
     }
 
     .device-info-display .version {
-      font-size: 10pt;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      line-height: 1.2;
+    }
+
+    .device-info-display .version-label {
+      font-size: 8pt;
       opacity: 0.8;
+    }
+
+    .device-info-display .version-value {
+      font-size: 9pt;
+      opacity: 1;
+    }
+
+    /* Model Selection Radio Buttons */
+    .model-selection {
+      position: absolute;
+      top: 2px;
+      right: 230px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      align-items: flex-start;
+      justify-content: center;
+      background-color: rgba(255, 255, 255, 0.95);
+      border-radius: 5px;
+      padding: 6px 10px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      z-index: 999;
+      height: 50px;
+      box-sizing: border-box;
+    }
+
+    .model-selection label {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 9pt;
+      color: #0075B8;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .model-selection input[type="radio"] {
+      cursor: pointer;
+      width: 14px;
+      height: 14px;
     }
 
     @keyframes fadeIn {
@@ -738,8 +798,22 @@
       
       <!-- Device Information Display Area (Top Right) -->
       <div id="device-info-display" class="device-info-display">
-        <div class="model">Model: Unknown</div>
-        <div class="version">Version: Unknown</div>
+        <div class="version">
+          <div class="version-label">Version:</div>
+          <div class="version-value">--.--</div>
+        </div>
+      </div>
+      
+      <!-- Model Selection Radio Buttons -->
+      <div class="model-selection">
+        <label>
+          <input type="radio" name="device-model" value="CR2" id="model-cr2-radio" checked>
+          Model CR2
+        </label>
+        <label>
+          <input type="radio" name="device-model" value="CR" id="model-cr-radio">
+          Model CR
+        </label>
       </div>
       
       <!-- Tab Container -->
@@ -1722,7 +1796,7 @@
     let speedProfileBuffer = new Uint8Array(0); // Speed profile dedicated buffer
     let speedProfilesRetrieved = false; // Speed profile retrieval completion flag
     let motorStatusBuffer = new Uint8Array(0); // Motor status dedicated buffer
-    let deviceModel = null; // For storing device model
+    let deviceModel = 'CR2'; // For storing device model (initial value: CR2)
 
     // UI display switching function
     function updateConnectionUI(connected) {
@@ -1933,8 +2007,21 @@
       // Reset three motor status displays
       const displayIds = ['', '-velocity', '-start-sending'];
       
+      const isModelCR = document.getElementById('model-cr-radio').checked;
       displayIds.forEach(suffix => {
-        document.getElementById(`battery-status${suffix}`).textContent = '-';
+        const batteryStatusEl = document.getElementById(`battery-status${suffix}`);
+        const buzzerStatusEl = document.getElementById(`buzzer-status${suffix}`);
+        if (isModelCR) {
+          batteryStatusEl.previousElementSibling.textContent = '';
+          batteryStatusEl.textContent = '';
+          buzzerStatusEl.previousElementSibling.textContent = '';
+          buzzerStatusEl.textContent = '';
+        } else {
+          batteryStatusEl.previousElementSibling.textContent = 'Low Level:';
+          batteryStatusEl.textContent = '-';
+          buzzerStatusEl.previousElementSibling.textContent = 'Low Buzzer:';
+          buzzerStatusEl.textContent = '-';
+        }
         document.getElementById(`battery-level${suffix}`).textContent = '-';
         document.getElementById(`battery-current${suffix}`).textContent = '-';
         document.getElementById(`joystick-forward${suffix}`).textContent = '-';
@@ -1947,7 +2034,6 @@
         document.getElementById(`speed-mode${suffix}`).textContent = '-';
         document.getElementById(`error-code${suffix}`).textContent = '-';
         document.getElementById(`angle-counter${suffix}`).textContent = '-';
-        document.getElementById(`buzzer-status${suffix}`).textContent = '-';
         
         // Reset color
         document.getElementById(`error-code${suffix}`).style.color = '#000';
@@ -1961,10 +2047,22 @@
 
     // Function to clear motor status display for basic function tab
     function clearMainMotorStatusDisplay() {
+      const isModelCR = document.getElementById('model-cr-radio').checked;
       document.getElementById('main-battery-level').textContent = '-';
       document.getElementById('main-battery-current').textContent = '-';
-      document.getElementById('main-battery-status').textContent = '-';
-      document.getElementById('main-buzzer-status').textContent = '-';
+      const mainBatteryStatusEl = document.getElementById('main-battery-status');
+      const mainBuzzerStatusEl = document.getElementById('main-buzzer-status');
+      if (isModelCR) {
+        mainBatteryStatusEl.previousElementSibling.textContent = '';
+        mainBatteryStatusEl.textContent = '';
+        mainBuzzerStatusEl.previousElementSibling.textContent = '';
+        mainBuzzerStatusEl.textContent = '';
+      } else {
+        mainBatteryStatusEl.previousElementSibling.textContent = 'Low Level:';
+        mainBatteryStatusEl.textContent = '-';
+        mainBuzzerStatusEl.previousElementSibling.textContent = 'Low Buzzer:';
+        mainBuzzerStatusEl.textContent = '-';
+      }
       document.getElementById('main-power-status').textContent = '-';
       document.getElementById('main-speed-mode').textContent = '-';
       document.getElementById('main-error-code').textContent = '-';
@@ -1982,11 +2080,23 @@
 
     // Function to update motor status display for basic function tab
     function updateMainMotorStatusDisplay(status) {
+      const isModelCR = document.getElementById('model-cr-radio').checked;
       // Battery information
       document.getElementById('main-battery-level').textContent = `${status.batteryLevel}%`;
       document.getElementById('main-battery-current').textContent = `${(status.batteryCurrent * 2).toFixed(1)}mA`;
-      document.getElementById('main-battery-status').textContent = `${status.battery}%`;
-      document.getElementById('main-buzzer-status').textContent = status.buzzer ? 'ON' : 'OFF';
+      const mainBatteryStatusEl = document.getElementById('main-battery-status');
+      const mainBuzzerStatusEl = document.getElementById('main-buzzer-status');
+      if (isModelCR) {
+        mainBatteryStatusEl.previousElementSibling.textContent = '';
+        mainBatteryStatusEl.textContent = '';
+        mainBuzzerStatusEl.previousElementSibling.textContent = '';
+        mainBuzzerStatusEl.textContent = '';
+      } else {
+        mainBatteryStatusEl.previousElementSibling.textContent = 'Low Level:';
+        mainBatteryStatusEl.textContent = `${status.battery}%`;
+        mainBuzzerStatusEl.previousElementSibling.textContent = 'Low Buzzer:';
+        mainBuzzerStatusEl.textContent = status.buzzer ? 'ON' : 'OFF';
+      }
 
       // System status information
       document.getElementById('main-power-status').textContent = status.power ? 'ON' : 'OFF';
@@ -2232,7 +2342,7 @@
                   speedProfileDataDisplay.scrollTop = speedProfileDataDisplay.scrollHeight;
 
                   // Update device information
-                  updateDeviceInfo('unknown', 'Unknown');
+                  updateDeviceInfo('unknown', '--.--');
 
                   waitingForVersionResponse = false;
                 }
@@ -2280,19 +2390,88 @@
     // Device information display update function (top right)
     function updateDeviceInfoDisplay(model, version) {
       const deviceInfoDisplay = document.getElementById('device-info-display');
-      const modelElement = deviceInfoDisplay.querySelector('.model');
-      const versionElement = deviceInfoDisplay.querySelector('.version');
+      const versionLabelElement = deviceInfoDisplay.querySelector('.version-label');
+      const versionValueElement = deviceInfoDisplay.querySelector('.version-value');
 
-      if (model === 'CR2') {
-        modelElement.textContent = 'Model: CR2';
-        versionElement.textContent = `Version: ${version}`;
-        deviceInfoDisplay.style.color = '#0075B8';
-      } else {
-        modelElement.textContent = 'Model: Unknown';
-        versionElement.textContent = 'Version: Unknown';
-        deviceInfoDisplay.style.color = '#0075B8';
+      if (versionLabelElement && versionValueElement) {
+        versionLabelElement.textContent = 'Version:';
+        if (version && version !== 'Unknown' && version !== '--.--') {
+          versionValueElement.textContent = version;
+        } else {
+          versionValueElement.textContent = '--.--';
+        }
       }
+      deviceInfoDisplay.style.color = '#0075B8';
     }
+
+    // Update Battery Low Level / Low Buzzer display according to selected model (CR: show "", CR2: show label + value)
+    function updateBatteryLowLevelBuzzerForModel() {
+      const isModelCR = document.getElementById('model-cr-radio').checked;
+      const displayIds = ['', '-velocity', '-start-sending'];
+      // Main tab
+      const mainBatteryStatusEl = document.getElementById('main-battery-status');
+      const mainBuzzerStatusEl = document.getElementById('main-buzzer-status');
+      if (mainBatteryStatusEl && mainBuzzerStatusEl) {
+        if (isModelCR) {
+          mainBatteryStatusEl.previousElementSibling.textContent = '';
+          mainBatteryStatusEl.textContent = '';
+          mainBuzzerStatusEl.previousElementSibling.textContent = '';
+          mainBuzzerStatusEl.textContent = '';
+        } else {
+          mainBatteryStatusEl.previousElementSibling.textContent = 'Low Level:';
+          mainBuzzerStatusEl.previousElementSibling.textContent = 'Low Buzzer:';
+        }
+      }
+      // Other tabs
+      displayIds.forEach(suffix => {
+        const batteryStatusEl = document.getElementById(`battery-status${suffix}`);
+        const buzzerStatusEl = document.getElementById(`buzzer-status${suffix}`);
+        if (batteryStatusEl && buzzerStatusEl) {
+          if (isModelCR) {
+            batteryStatusEl.previousElementSibling.textContent = '';
+            batteryStatusEl.textContent = '';
+            buzzerStatusEl.previousElementSibling.textContent = '';
+            buzzerStatusEl.textContent = '';
+          } else {
+            batteryStatusEl.previousElementSibling.textContent = 'Low Level:';
+            buzzerStatusEl.previousElementSibling.textContent = 'Low Buzzer:';
+          }
+        }
+      });
+    }
+
+    // Model selection radio button event handlers
+    const modelCrRadio = document.getElementById('model-cr-radio');
+    const modelCr2Radio = document.getElementById('model-cr2-radio');
+
+    modelCrRadio.addEventListener('change', () => {
+      if (modelCrRadio.checked) {
+        deviceModel = 'CR';
+        // Always set version to --.-- when CR model is selected
+        updateDeviceInfo('CR', '--.--');
+        updateBatteryLowLevelBuzzerForModel();
+      }
+    });
+
+    modelCr2Radio.addEventListener('change', () => {
+      if (modelCr2Radio.checked) {
+        deviceModel = 'CR2';
+        updateBatteryLowLevelBuzzerForModel();
+        // Update display if version is already known
+        const deviceInfoDisplay = document.getElementById('device-info-display');
+        const versionValueElement = deviceInfoDisplay.querySelector('.version-value');
+        if (versionValueElement) {
+          const version = versionValueElement.textContent.trim();
+          if (version && version !== '--.--' && version !== 'Unknown') {
+            updateDeviceInfo('CR2', version);
+          } else {
+            updateDeviceInfo('CR2', '--.--');
+          }
+        } else {
+          updateDeviceInfo('CR2', '--.--');
+        }
+      }
+    });
 
     // 5-byte response check function (for version verification)
     function checkVersionResponse(data) {
@@ -2321,6 +2500,12 @@
           // Update device information
           deviceModel = 'CR2';
           updateDeviceInfo('CR2', versionString);
+          
+          // Update radio button to CR2
+          const modelCr2Radio = document.getElementById('model-cr2-radio');
+          if (modelCr2Radio) {
+            modelCr2Radio.checked = true;
+          }
 
           // Clear timeout
           if (versionResponseTimeout) {
@@ -2399,7 +2584,7 @@
         keepReading = true;
 
         // Reset device information
-        updateDeviceInfo('unknown', 'Unknown');
+        updateDeviceInfo('unknown', '--.--');
 
         // Disable speed profile input fields
         setSpeedProfileInputsEditable(false);
@@ -2437,7 +2622,7 @@
         stopVelocityContinuousSending();
 
         // Reset device information
-        updateDeviceInfo('unknown', 'Unknown');
+        updateDeviceInfo('unknown', '--.--');
 
         // Disable speed profile input fields
         setSpeedProfileInputsEditable(false);
@@ -3102,9 +3287,22 @@
       // Also update motor status display for basic function tab
       updateMainMotorStatusDisplay(status);
       
+      const isModelCR = document.getElementById('model-cr-radio').checked;
       displayIds.forEach(suffix => {
         // Battery information
-        document.getElementById(`battery-status${suffix}`).textContent = `${status.battery}%`;
+        const batteryStatusEl = document.getElementById(`battery-status${suffix}`);
+        const buzzerStatusEl = document.getElementById(`buzzer-status${suffix}`);
+        if (isModelCR) {
+          batteryStatusEl.previousElementSibling.textContent = '';
+          batteryStatusEl.textContent = '';
+          buzzerStatusEl.previousElementSibling.textContent = '';
+          buzzerStatusEl.textContent = '';
+        } else {
+          batteryStatusEl.previousElementSibling.textContent = 'Low Level:';
+          batteryStatusEl.textContent = `${status.battery}%`;
+          buzzerStatusEl.previousElementSibling.textContent = 'Low Buzzer:';
+          buzzerStatusEl.textContent = status.buzzer ? 'ON' : 'OFF';
+        }
         document.getElementById(`battery-level${suffix}`).textContent = `${status.batteryLevel}%`;
         document.getElementById(`battery-current${suffix}`).textContent = `${(status.batteryCurrent * 2).toFixed(1)}mA`;
 
@@ -3133,9 +3331,6 @@
         document.getElementById(`speed-mode${suffix}`).textContent = speedModeDisplay;
         document.getElementById(`error-code${suffix}`).textContent = status.errorCode || 'None';
         document.getElementById(`angle-counter${suffix}`).textContent = status.angleCounter;
-
-        // Buzzer information (moved to battery information group)
-        document.getElementById(`buzzer-status${suffix}`).textContent = status.buzzer ? 'ON' : 'OFF';
 
         // Change color according to error code
         const errorElement = document.getElementById(`error-code${suffix}`);
