@@ -946,6 +946,16 @@
       </fieldset>
 
       <fieldset>
+        <legend>Port / Turn</legend>
+        <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+          <button id="swap-port-button" type="button" class="custom-command-button">Swap Port</button>
+          <button id="turn-right-button" type="button" class="custom-command-button">Turn Right</button>
+          <button id="turn-left-button" type="button" class="custom-command-button">Turn Left</button>
+        </div>
+        <p style="margin-top: 8px; color: #666; font-size: 11pt;">Swap Port: swap SET_A and SET_B. Turn Right/Left: hold to send SET_VELOCITY(0, ±150) to both.</p>
+      </fieldset>
+
+      <fieldset>
         <legend>Send/Receive Data Display</legend>
         <div id="data-display"></div>
         <button id="clear-button" type="button" class="clear-button">Clear</button>
@@ -1149,6 +1159,20 @@
           writer.releaseLock();
         }
       }
+    }
+
+    // Build SET_VELOCITY command (forward and left/right as 16-bit signed). Used by joystick and turn buttons.
+    function buildSetVelocityCommandFull(forwardVelocity, leftRightVelocity) {
+      const bodyPriority = 0;
+      const header = [0xAF, 0x07, 0x08, bodyPriority];
+      const forwardHigh = (forwardVelocity >> 8) & 0xFF;
+      const forwardLow = forwardVelocity & 0xFF;
+      const leftRightHigh = (leftRightVelocity >> 8) & 0xFF;
+      const leftRightLow = leftRightVelocity & 0xFF;
+      const data = [forwardHigh, forwardLow, leftRightHigh, leftRightLow];
+      let checksum = 0;
+      [...header, ...data].forEach(byte => { checksum ^= byte; });
+      return new Uint8Array([...header, ...data, checksum]);
     }
 
     // Tab switching function
@@ -2012,6 +2036,7 @@
         waitingForVersionResponse = false;
         motorStatusBuffer = new Uint8Array(0);
         stopJoystickInterval();
+        stopTurnIntervals();
 
         dataDisplay.textContent = '';
         speedProfileDataDisplay.textContent = '';
@@ -2281,6 +2306,99 @@
         alert('Device is not connected.');
       }
     });
+
+    // Swap Port: swap SET_A and SET_B internally
+    const swapPortButton = document.getElementById('swap-port-button');
+    if (swapPortButton) swapPortButton.addEventListener('click', () => {
+      if (!portA && !portB) return;
+      const t = portA;
+      portA = portB;
+      portB = t;
+      updateConnectionUI();
+      const timestamp = getJapanTimeString();
+      dataDisplay.textContent += `[${timestamp}] Swap Port: SET_A and SET_B swapped.\n`;
+      dataDisplay.scrollTop = dataDisplay.scrollHeight;
+    });
+
+    // Turn Right / Turn Left: hold to send SET_VELOCITY(0, ±150), release to send (0,0)
+    let turnRightInterval = null;
+    let turnLeftInterval = null;
+
+    function stopTurnIntervals() {
+      if (turnRightInterval) {
+        clearInterval(turnRightInterval);
+        turnRightInterval = null;
+      }
+      if (turnLeftInterval) {
+        clearInterval(turnLeftInterval);
+        turnLeftInterval = null;
+      }
+    }
+
+    function sendTurnStop() {
+      if (!hasWritablePort()) return;
+      const cmd = buildSetVelocityCommandFull(0, 0);
+      writeToBothPorts(cmd);
+      const timestamp = getJapanTimeString();
+      dataDisplay.textContent += `[${timestamp}] Send SET_VELOCITY Stop (0, 0)\n`;
+      dataDisplay.scrollTop = dataDisplay.scrollHeight;
+    }
+
+    const turnRightButton = document.getElementById('turn-right-button');
+    if (turnRightButton) {
+      turnRightButton.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        if (!hasWritablePort()) return;
+        stopTurnIntervals();
+        const cmd = buildSetVelocityCommandFull(0, 150);
+        writeToBothPorts(cmd);
+        turnRightInterval = setInterval(() => {
+          if (hasWritablePort()) writeToBothPorts(cmd);
+        }, 100);
+      });
+      turnRightButton.addEventListener('mouseup', () => { stopTurnIntervals(); sendTurnStop(); });
+      turnRightButton.addEventListener('mouseleave', () => { stopTurnIntervals(); sendTurnStop(); });
+      turnRightButton.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        if (!hasWritablePort()) return;
+        stopTurnIntervals();
+        const cmd = buildSetVelocityCommandFull(0, 150);
+        writeToBothPorts(cmd);
+        turnRightInterval = setInterval(() => {
+          if (hasWritablePort()) writeToBothPorts(cmd);
+        }, 100);
+      });
+      turnRightButton.addEventListener('touchend', (e) => { e.preventDefault(); stopTurnIntervals(); sendTurnStop(); });
+      turnRightButton.addEventListener('touchcancel', () => { stopTurnIntervals(); sendTurnStop(); });
+    }
+
+    const turnLeftButton = document.getElementById('turn-left-button');
+    if (turnLeftButton) {
+      turnLeftButton.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        if (!hasWritablePort()) return;
+        stopTurnIntervals();
+        const cmd = buildSetVelocityCommandFull(0, -150);
+        writeToBothPorts(cmd);
+        turnLeftInterval = setInterval(() => {
+          if (hasWritablePort()) writeToBothPorts(cmd);
+        }, 100);
+      });
+      turnLeftButton.addEventListener('mouseup', () => { stopTurnIntervals(); sendTurnStop(); });
+      turnLeftButton.addEventListener('mouseleave', () => { stopTurnIntervals(); sendTurnStop(); });
+      turnLeftButton.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        if (!hasWritablePort()) return;
+        stopTurnIntervals();
+        const cmd = buildSetVelocityCommandFull(0, -150);
+        writeToBothPorts(cmd);
+        turnLeftInterval = setInterval(() => {
+          if (hasWritablePort()) writeToBothPorts(cmd);
+        }, 100);
+      });
+      turnLeftButton.addEventListener('touchend', (e) => { e.preventDefault(); stopTurnIntervals(); sendTurnStop(); });
+      turnLeftButton.addEventListener('touchcancel', () => { stopTurnIntervals(); sendTurnStop(); });
+    }
 
     // Speed profile retrieval button handler (tab removed)
     if (getSpeedProfilesButton) getSpeedProfilesButton.addEventListener('click', async () => {
