@@ -1,0 +1,3598 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="WHILLシリアル通信テストツール - Web Serial APIを使用したシリアル通信テストツール" />
+  <meta name="author" content="WHILL CO.,LTD." />
+  <title>WHILL Serial Communication Test Tool</title>
+  <style>
+    h1 {
+      font-size: 20pt;
+      background-color: #4F4F4F;
+      color: #FFFFFF;
+      font-weight: normal;
+      padding: 10px;
+    }
+
+    h2 {
+      font-size: 14pt;
+    }
+
+    body {
+      font-size: 12pt;
+      color: #444444;
+      font-family: Arial, sans-serif;
+    }
+
+    fieldset {
+      font-size: 12pt;
+      line-height: 1.5em;
+      padding: 20px;
+      margin: 10px 0;
+    }
+
+    button {
+      font-size: 12pt;
+      padding: 10px 20px;
+      margin: 5px;
+      border-radius: 5px;
+      border: none;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* Fixed Header Section Styles */
+    .fixed-header {
+      position: sticky;
+      top: 0;
+      background-color: white;
+      z-index: 100;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Tab Function Styles */
+    .tab-container {
+      margin: 20px 0;
+    }
+
+    .tab-buttons {
+      display: flex;
+      border-bottom: 2px solid #0075B8;
+      margin-bottom: 20px;
+    }
+
+    .tab-button {
+      background-color: #f8f9fa;
+      color: #0075B8;
+      border: 2px solid #0075B8;
+      border-bottom: none;
+      padding: 12px 24px;
+      margin-right: 5px;
+      border-radius: 8px 8px 0 0;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.3s ease;
+    }
+
+    .tab-button:hover {
+      background-color: #e3f2fd;
+    }
+
+    .tab-button.active {
+      background-color: #0075B8;
+      color: white;
+    }
+
+    .tab-content {
+      display: none;
+      margin-top: 20px;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    /* Power Button Styles */
+    .power-button {
+      font-weight: bold;
+      font-size: 14pt;
+      padding: 15px 30px;
+      margin: 10px;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+    }
+
+    .power-on {
+      background-color: #0075B8;
+      color: white;
+      box-shadow: 0 4px 8px rgba(0, 117, 184, 0.3);
+    }
+
+    .power-on:hover:not(:disabled) {
+      background-color: #005a8f;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(0, 117, 184, 0.4);
+    }
+
+    .power-off {
+      background-color: #666666;
+      color: white;
+      box-shadow: 0 4px 8px rgba(102, 102, 102, 0.3);
+    }
+
+    .power-off:hover:not(:disabled) {
+      background-color: #4d4d4d;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(102, 102, 102, 0.4);
+    }
+
+    /* Device Information Retrieval Button Styles */
+    .version-button {
+      background-color: #0075B8;
+      color: white;
+      box-shadow: 0 2px 4px rgba(0, 117, 184, 0.3);
+      width: 80px;
+      padding: 8px 12px;
+      font-size: 11pt;
+    }
+
+    .version-button:hover:not(:disabled) {
+      background-color: #005a8f;
+      transform: translateY(-1px);
+      box-shadow: 0 3px 6px rgba(0, 117, 184, 0.4);
+    }
+
+    /* Connection Button Styles */
+    .connect-button {
+      background-color: #0075B8;
+      color: white;
+      box-shadow: 0 4px 8px rgba(0, 117, 184, 0.3);
+    }
+
+    .connect-button:hover:not(:disabled) {
+      background-color: #005a8f;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(0, 117, 184, 0.4);
+    }
+
+    /* Clear Button Styles */
+    .clear-button {
+      background-color: #666666;
+      color: white;
+      box-shadow: 0 4px 8px rgba(102, 102, 102, 0.3);
+    }
+
+    .clear-button:hover:not(:disabled) {
+      background-color: #4d4d4d;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(102, 102, 102, 0.4);
+    }
+
+    /* Download CSV Button Styles */
+    .download-csv-button {
+      background-color: #28a745;
+      color: white;
+      box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+    }
+
+    .download-csv-button:hover:not(:disabled) {
+      background-color: #218838;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(40, 167, 69, 0.4);
+    }
+
+    #data-display {
+      width: 100%;
+      height: 300px;
+      border: 1px solid #ccc;
+      padding: 10px;
+      overflow-y: auto;
+      background-color: #f9f9f9;
+      font-family: monospace;
+      white-space: pre-wrap;
+      border-radius: 5px;
+    }
+
+    #joystick-data-display {
+      width: 100%;
+      height: 300px;
+      border: 1px solid #ccc;
+      padding: 10px;
+      overflow-y: auto;
+      background-color: #f9f9f9;
+      font-family: monospace;
+      white-space: pre-wrap;
+      border-radius: 5px;
+    }
+
+    #speed-profile-data-display {
+      width: 100%;
+      height: 300px;
+      border: 1px solid #ccc;
+      padding: 10px;
+      overflow-y: auto;
+      background-color: #f9f9f9;
+      font-family: monospace;
+      white-space: pre-wrap;
+      border-radius: 5px;
+    }
+
+    /* Device Information Display Area */
+    #device-info {
+      background-color: #f8f9fa;
+      border: 2px solid #0075B8;
+      padding: 20px;
+      border-radius: 10px;
+      margin: 10px 0;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .info-row {
+      display: flex;
+      align-items: center;
+      margin: 10px 0;
+      padding: 10px;
+      background-color: white;
+      border-radius: 5px;
+      border: 1px solid #e9ecef;
+    }
+
+    .info-label {
+      font-weight: bold;
+      font-size: 14pt;
+      color: #0075B8;
+      width: 120px;
+      flex-shrink: 0;
+    }
+
+    .info-value {
+      font-size: 16pt;
+      font-weight: bold;
+      padding: 5px 15px;
+      border-radius: 20px;
+      background-color: #f8f9fa;
+      border: 1px solid #dee2e6;
+      min-width: 120px;
+      text-align: center;
+    }
+
+    .status-unknown {
+      background-color: #f8f9fa;
+      color: #666666;
+    }
+
+    .status-cr {
+      background-color: #fff3cd;
+      color: #856404;
+      border-color: #ffeaa7;
+    }
+
+    .status-cr2 {
+      background-color: #d4edda;
+      color: #155724;
+      border-color: #c3e6cb;
+    }
+
+    /* Virtual Joystick Styles */
+    .joystick-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 20px 0;
+      gap: 40px;
+    }
+
+    /* Speed Profile Styles */
+    .speed-profile-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 8px;
+      margin: 20px 0;
+    }
+
+    .speed-profile-card {
+      border: 2px solid #0075B8;
+      border-radius: 8px;
+      padding: 8px;
+      background-color: #f8f9fa;
+    }
+
+    .speed-profile-header {
+      background-color: #0075B8;
+      color: white;
+      padding: 6px;
+      margin: -8px -8px 8px -8px;
+      border-radius: 6px 6px 0 0;
+      text-align: center;
+      font-weight: bold;
+      font-size: 12pt;
+    }
+
+    .speed-profile-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 3px 0;
+      border-bottom: 1px solid #dee2e6;
+    }
+
+    .speed-profile-item:last-child {
+      border-bottom: none;
+    }
+
+    .speed-profile-label {
+      font-weight: bold;
+      color: #0075B8;
+      min-width: 40px;
+      font-size: 12pt;
+    }
+
+    .speed-profile-value {
+      background-color: white;
+      padding: 2px 4px;
+      border-radius: 3px;
+      border: 1px solid #dee2e6;
+      font-family: monospace;
+      font-weight: bold;
+      min-width: 35px;
+      text-align: center;
+      font-size: 12pt;
+    }
+
+    .speed-profile-input {
+      background-color: white;
+      padding: 2px 4px;
+      border-radius: 3px;
+      border: 1px solid #dee2e6;
+      font-family: monospace;
+      font-weight: bold;
+      min-width: 35px;
+      text-align: center;
+      font-size: 12pt;
+    }
+
+    .speed-profile-input:focus {
+      outline: none;
+      border-color: #0075B8;
+      box-shadow: 0 0 5px rgba(0, 117, 184, 0.3);
+    }
+
+    .speed-profile-status {
+      text-align: left;
+      padding: 10px;
+      font-weight: bold;
+      color: #666666;
+    }
+
+    .speed-profile-loading {
+      color: #0075B8;
+    }
+
+    .speed-profile-success {
+      color: #28a745;
+    }
+
+    .speed-profile-error {
+      color: #dc3545;
+    }
+
+    /* Custom Command Styles */
+    .custom-command-input {
+      background-color: white;
+      padding: 8px 12px;
+      border-radius: 5px;
+      border: 2px solid #0075B8;
+      font-family: monospace;
+      font-weight: bold;
+      text-align: center;
+      font-size: 12pt;
+    }
+
+    .custom-command-input:focus {
+      outline: none;
+      border-color: #005a8f;
+      box-shadow: 0 0 5px rgba(0, 117, 184, 0.3);
+    }
+
+    .custom-command-button {
+      background-color: #0075B8;
+      color: white;
+      box-shadow: 0 4px 8px rgba(0, 117, 184, 0.3);
+      padding: 12px 20px;
+      font-size: 12pt;
+      font-weight: bold;
+    }
+
+    .custom-command-button:hover:not(:disabled) {
+      background-color: #005a8f;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(0, 117, 184, 0.4);
+    }
+
+    .continuous-button {
+      background: linear-gradient(135deg, #28a745, #20c997);
+      border: 2px solid #28a745;
+      color: white;
+      font-weight: bold;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .continuous-button:hover:not(:disabled) {
+      background: linear-gradient(135deg, #218838, #1ea085);
+      border-color: #218838;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(40, 167, 69, 0.4);
+    }
+
+    .continuous-button.sending {
+      background: linear-gradient(135deg, #dc3545, #fd7e14);
+      border-color: #dc3545;
+      animation: pulse 0.5s infinite alternate;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 1; }
+      100% { opacity: 0.7; }
+    }
+
+    .preview-command-button {
+      background-color: #28a745;
+      color: white;
+      box-shadow: 0 2px 4px rgba(40, 167, 69, 0.3);
+      padding: 12px 20px;
+      font-size: 12pt;
+      font-weight: bold;
+    }
+
+    .preview-command-button:hover:not(:disabled) {
+      background-color: #218838;
+      transform: translateY(-1px);
+      box-shadow: 0 3px 6px rgba(40, 167, 69, 0.4);
+    }
+
+    .command-preview {
+      margin-top: 15px;
+      padding: 15px;
+      background-color: #f8f9fa;
+      border: 2px solid #0075B8;
+      border-radius: 8px;
+    }
+
+    #custom-command-data-display {
+      width: 100%;
+      height: 300px;
+      border: 1px solid #ccc;
+      padding: 10px;
+      overflow-y: auto;
+      background-color: #f9f9f9;
+      font-family: monospace;
+      white-space: pre-wrap;
+      border-radius: 5px;
+    }
+
+    /* Setting Button Styles */
+    .set-speed-profile-button {
+      background-color: #28a745;
+      color: white;
+      box-shadow: 0 2px 4px rgba(40, 167, 69, 0.3);
+      width: 80px;
+      padding: 8px 12px;
+      font-size: 11pt;
+    }
+
+    .set-speed-profile-button:hover:not(:disabled) {
+      background-color: #218838;
+      transform: translateY(-1px);
+      box-shadow: 0 3px 6px rgba(40, 167, 69, 0.4);
+    }
+
+    .set-speed-profile-button:disabled {
+      background-color: #6c757d;
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* Cancel Button Styles */
+    .cancel-speed-profile-button {
+      background-color: #dc3545;
+      color: white;
+      box-shadow: 0 2px 4px rgba(220, 53, 69, 0.3);
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 11pt;
+    }
+
+    .cancel-speed-profile-button:hover:not(:disabled) {
+      background-color: #c82333;
+      transform: translateY(-1px);
+      box-shadow: 0 3px 6px rgba(220, 53, 69, 0.4);
+    }
+
+    .cancel-speed-profile-button:disabled {
+      background-color: #6c757d;
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .joystick {
+      position: relative;
+      width: 150px;
+      height: 150px;
+      border: 3px solid #0075B8;
+      border-radius: 50%;
+      background-color: #f8f9fa;
+      cursor: pointer;
+      user-select: none;
+      touch-action: none;
+    }
+
+    .joystick-knob {
+      position: absolute;
+      width: 40px;
+      height: 40px;
+      background-color: #0075B8;
+      border-radius: 50%;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      cursor: grab;
+      transition: all 0.1s ease;
+      box-shadow: 0 2px 8px rgba(0, 117, 184, 0.3);
+    }
+
+    .joystick-knob:active {
+      cursor: grabbing;
+      transform: translate(-50%, -50%) scale(1.1);
+    }
+
+    .joystick-center {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      background-color: #666666;
+      border-radius: 50%;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+
+    .joystick-values {
+      text-align: center;
+      margin-top: 10px;
+      font-weight: bold;
+      color: #0075B8;
+    }
+
+    .joystick-label {
+      text-align: center;
+      font-weight: bold;
+      color: #0075B8;
+      margin-bottom: 10px;
+      font-size: 14pt;
+    }
+
+    footer {
+      font-size: 8pt;
+      margin-top: 30px;
+    }
+
+    /* Pre-connection Display Area Styles */
+    .pre-connection-area {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 400px;
+      background-color: #f8f9fa;
+      border-radius: 10px;
+      margin: 20px 0;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .connection-welcome {
+      text-align: center;
+      padding: 40px;
+      background-color: white;
+      border-radius: 15px;
+      box-shadow: 0 6px 20px rgba(0, 117, 184, 0.15);
+      border: 2px solid #0075B8;
+    }
+
+    .connection-welcome h2 {
+      color: #0075B8;
+      margin-bottom: 20px;
+      font-size: 24pt;
+      font-weight: bold;
+    }
+
+    .connection-welcome p {
+      color: #666666;
+      margin-bottom: 30px;
+      font-size: 14pt;
+      line-height: 1.6;
+    }
+
+    .connection-welcome .connect-button {
+      font-size: 16pt;
+      padding: 20px 40px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #0075B8, #005a8f);
+      box-shadow: 0 8px 25px rgba(0, 117, 184, 0.3);
+      transition: all 0.3s ease;
+    }
+
+    .connection-welcome .connect-button:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 35px rgba(0, 117, 184, 0.4);
+      background: linear-gradient(135deg, #005a8f, #004a7a);
+    }
+
+    /* Post-connection Display Area Styles */
+    .post-connection-area {
+      animation: fadeIn 0.5s ease-in-out;
+      position: relative;
+    }
+
+    /* Disconnect Button Styles */
+    .disconnect-button {
+      position: absolute;
+      top: -2px;
+      right: 10px;
+      background-color: #dc3545;
+      color: white;
+      border: none;
+      padding: 0 16px;
+      border-radius: 5px;
+      font-size: 12pt;
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 2px 4px rgba(220, 53, 69, 0.3);
+      transition: all 0.3s ease;
+      z-index: 1000;
+      box-sizing: border-box;
+      line-height: 1;
+    }
+
+    .disconnect-button:hover {
+      background-color: #c82333;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(220, 53, 69, 0.4);
+    }
+
+    /* Device Information Display Area (Top Right) */
+    .device-info-display {
+      position: absolute;
+      top: 2px;
+      right: 145px;
+      background-color: rgba(255, 255, 255, 0.95);
+      border-radius: 5px;
+      padding: 0;
+      font-size: 9pt;
+      color: #0075B8;
+      font-weight: bold;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      z-index: 999;
+      width: 70px;
+      height: 50px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-sizing: border-box;
+    }
+
+    .device-info-display:hover {
+      background-color: rgba(0, 117, 184, 0.1);
+      transform: translateY(-1px);
+      box-shadow: 0 3px 6px rgba(0, 117, 184, 0.3);
+    }
+
+    .device-info-display:active {
+      transform: translateY(0);
+      box-shadow: 0 1px 2px rgba(0, 117, 184, 0.3);
+    }
+
+    .device-info-display .model {
+      margin-bottom: 2px;
+    }
+
+    .device-info-display .version {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      line-height: 1.2;
+    }
+
+    .device-info-display .version-label {
+      font-size: 8pt;
+      opacity: 0.8;
+    }
+
+    .device-info-display .version-value {
+      font-size: 9pt;
+      opacity: 1;
+    }
+
+    /* Model Selection Radio Buttons */
+    .model-selection {
+      position: absolute;
+      top: 2px;
+      right: 230px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      align-items: flex-start;
+      justify-content: center;
+      background-color: rgba(255, 255, 255, 0.95);
+      border-radius: 5px;
+      padding: 6px 10px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      z-index: 999;
+      height: 50px;
+      box-sizing: border-box;
+    }
+
+    .model-selection label {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 9pt;
+      color: #0075B8;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .model-selection input[type="radio"] {
+      cursor: pointer;
+      width: 14px;
+      height: 14px;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Fixed Header Section -->
+  <div class="fixed-header">
+    <h1><span>WHILL Serial Communication Test Tool (v1.00)</span></h1>
+
+    <!-- Pre-connection Display Area -->
+    <div id="pre-connection-area" class="pre-connection-area">
+      <div class="connection-welcome">
+        <h2>Please connect to WHILL device (Omni Platform)</h2>
+        <p>Connect both SET_A and SET_B. The Basic tab will be available when both are connected.</p>
+        <div style="display: flex; gap: 20px; align-items: center; flex-wrap: wrap; margin: 15px 0;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <button id="connect-set-a-button" type="button" class="connect-button">Connect SET_A</button>
+            <span id="status-set-a" class="connection-status" style="font-weight: bold; color: #666;">Not connected</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <button id="connect-set-b-button" type="button" class="connect-button">Connect SET_B</button>
+            <span id="status-set-b" class="connection-status" style="font-weight: bold; color: #666;">Not connected</span>
+          </div>
+        </div>
+        <p id="both-required-message" style="margin-top: 10px; color: #0075B8; font-weight: bold;">Both SET_A and SET_B must be connected to use the Basic tab.</p>
+      </div>
+    </div>
+
+    <!-- Post-connection Display Area -->
+    <div id="post-connection-area" class="post-connection-area" style="display: none;">
+      <!-- Disconnect Button -->
+      <button id="disconnect-button" type="button" class="disconnect-button">Disconnect</button>
+      
+      <!-- Device Information Display Area (Top Right) -->
+      <div id="device-info-display" class="device-info-display">
+        <div class="version">
+          <div class="version-label">Version:</div>
+          <div class="version-value">--.--</div>
+        </div>
+      </div>
+      
+      <!-- Model Selection Radio Buttons -->
+      <div class="model-selection">
+        <label>
+          <input type="radio" name="device-model" value="CR2" id="model-cr2-radio" checked>
+          Model CR2
+        </label>
+        <label>
+          <input type="radio" name="device-model" value="CR" id="model-cr-radio">
+          Model CR
+        </label>
+      </div>
+      
+      <!-- Tab Container -->
+      <div class="tab-container">
+        <div class="tab-buttons">
+          <button class="tab-button active" onclick="switchTab('main')">Basic Functions</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+    <!-- Basic Functions Tab -->
+    <div id="main-tab" class="tab-content active">
+      <fieldset>
+        <legend>Power Control</legend>
+        <button id="power-on-button" type="button" class="power-button power-on">Power ON</button>
+        <button id="power-off-button" type="button" class="power-button power-off">Power OFF</button>
+      </fieldset>
+
+      <fieldset>
+        <legend>Basic Functions</legend>
+        <div style="display: flex; gap: 20px;">
+          <!-- Left Side: Virtual Joystick -->
+          <div style="flex: 0 0 300px;">
+            <div style="text-align: center; margin-bottom: 15px; padding: 10px; background-color: #fff3cd; border: 1px solid #ffeaa7; border-radius: 5px; color: #856404; font-weight: bold;">
+              ⚠️ Please be careful of your surroundings when operating
+            </div>
+            <div class="joystick-container">
+              <div>
+                <div class="joystick-label">Joystick</div>
+                <div id="joystick" class="joystick">
+                  <div class="joystick-center"></div>
+                  <div id="knob" class="joystick-knob"></div>
+                </div>
+                <div id="joystick-values" class="joystick-values">X: 0, Y: 0</div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Right Side: Motor Status Display -->
+          <div style="flex: 0 0 400px;">
+            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+              <button id="main-start-sending-data-button" type="button" class="custom-command-button" style="font-size: 12pt; padding: 8px 16px;">Start Status Retrieval</button>
+              <button id="main-stop-sending-data-button" type="button" class="custom-command-button" style="font-size: 12pt; padding: 8px 16px;">Stop Status Retrieval</button>
+            </div>
+            <div id="main-motor-status-container" style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <!-- Battery Information -->
+              <div class="motor-status-card" style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); border: 2px solid #2196f3; border-radius: 8px; padding: 8px; flex: 1; min-width: 120px;">
+                <div class="motor-status-header" style="font-weight: bold; color: #1976d2; margin-bottom: 6px; text-align: center; font-size: 11pt;">🔋 Battery</div>
+                <div class="motor-status-item" style="margin-bottom: 3px; display: flex; justify-content: space-between;">
+                  <span class="motor-status-label" style="font-weight: bold; color: #1976d2; font-size: 9pt;">Level:</span>
+                  <span id="main-battery-level" class="motor-status-value" style="color: #000; font-weight: bold; font-size: 9pt;">-</span>
+                </div>
+                <div class="motor-status-item" style="margin-bottom: 3px; display: flex; justify-content: space-between;">
+                  <span class="motor-status-label" style="font-weight: bold; color: #1976d2; font-size: 9pt;">Current:</span>
+                  <span id="main-battery-current" class="motor-status-value" style="color: #000; font-weight: bold; font-size: 9pt;">-</span>
+                </div>
+                <div class="motor-status-item" style="margin-bottom: 3px; display: flex; justify-content: space-between;">
+                  <span class="motor-status-label" style="font-weight: bold; color: #1976d2; font-size: 9pt;">Low Level:</span>
+                  <span id="main-battery-status" class="motor-status-value" style="color: #000; font-weight: bold; font-size: 9pt;">-</span>
+                </div>
+                <div class="motor-status-item" style="display: flex; justify-content: space-between;">
+                  <span class="motor-status-label" style="font-weight: bold; color: #1976d2; font-size: 9pt;">Low Buzzer:</span>
+                  <span id="main-buzzer-status" class="motor-status-value" style="color: #000; font-weight: bold; font-size: 9pt;">-</span>
+                </div>
+              </div>
+
+              <!-- System Status Information -->
+              <div class="motor-status-card" style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); border: 2px solid #2196f3; border-radius: 8px; padding: 8px; flex: 1; min-width: 120px;">
+                <div class="motor-status-header" style="font-weight: bold; color: #1976d2; margin-bottom: 6px; text-align: center; font-size: 11pt;">⚙️ System</div>
+                <div class="motor-status-item" style="margin-bottom: 3px; display: flex; justify-content: space-between;">
+                  <span class="motor-status-label" style="font-weight: bold; color: #1976d2; font-size: 9pt;">Power:</span>
+                  <span id="main-power-status" class="motor-status-value" style="color: #000; font-weight: bold; font-size: 9pt;">-</span>
+                </div>
+                <div class="motor-status-item" style="margin-bottom: 3px; display: flex; justify-content: space-between;">
+                  <span class="motor-status-label" style="font-weight: bold; color: #1976d2; font-size: 9pt;">Speed Mode:</span>
+                  <span id="main-speed-mode" class="motor-status-value" style="color: #000; font-weight: bold; font-size: 9pt;">-</span>
+                </div>
+                <div class="motor-status-item" style="margin-bottom: 3px; display: flex; justify-content: space-between;">
+                  <span class="motor-status-label" style="font-weight: bold; color: #1976d2; font-size: 9pt;">Error:</span>
+                  <span id="main-error-code" class="motor-status-value" style="color: #000; font-weight: bold; font-size: 9pt;">-</span>
+                </div>
+                <div class="motor-status-item" style="display: flex; justify-content: space-between;">
+                  <span class="motor-status-label" style="font-weight: bold; color: #1976d2; font-size: 9pt;">Counter:</span>
+                  <span id="main-angle-counter" class="motor-status-value" style="color: #000; font-weight: bold; font-size: 9pt;">-</span>
+                </div>
+              </div>
+
+              <!-- Motor Angle Information -->
+              <div class="motor-status-card" style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); border: 2px solid #2196f3; border-radius: 8px; padding: 8px; flex: 1; min-width: 120px;">
+                <div class="motor-status-header" style="font-weight: bold; color: #1976d2; margin-bottom: 6px; text-align: center; font-size: 11pt;">🔄 Angle</div>
+                <div class="motor-status-item" style="margin-bottom: 3px; display: flex; justify-content: space-between;">
+                  <span class="motor-status-label" style="font-weight: bold; color: #1976d2; font-size: 9pt;">Right:</span>
+                  <span id="main-motor-angle-right" class="motor-status-value" style="color: #000; font-weight: bold; font-size: 9pt;">-</span>
+                </div>
+                <div class="motor-status-item" style="display: flex; justify-content: space-between;">
+                  <span class="motor-status-label" style="font-weight: bold; color: #1976d2; font-size: 9pt;">Left:</span>
+                  <span id="main-motor-angle-left" class="motor-status-value" style="color: #000; font-weight: bold; font-size: 9pt;">-</span>
+                </div>
+              </div>
+
+              <!-- Motor Velocity Information -->
+              <div class="motor-status-card" style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); border: 2px solid #2196f3; border-radius: 8px; padding: 8px; flex: 1; min-width: 120px;">
+                <div class="motor-status-header" style="font-weight: bold; color: #1976d2; margin-bottom: 6px; text-align: center; font-size: 11pt;">⚡ Speed</div>
+                <div class="motor-status-item" style="margin-bottom: 3px; display: flex; justify-content: space-between;">
+                  <span class="motor-status-label" style="font-weight: bold; color: #1976d2; font-size: 9pt;">Right:</span>
+                  <span id="main-motor-speed-right" class="motor-status-value" style="color: #000; font-weight: bold; font-size: 9pt;">-</span>
+                </div>
+                <div class="motor-status-item" style="display: flex; justify-content: space-between;">
+                  <span class="motor-status-label" style="font-weight: bold; color: #1976d2; font-size: 9pt;">Left:</span>
+                  <span id="main-motor-speed-left" class="motor-status-value" style="color: #000; font-weight: bold; font-size: 9pt;">-</span>
+                </div>
+              </div>
+            </div>
+            <div style="text-align: center; margin-top: 10px;">
+              <button id="main-clear-motor-status-button" type="button" class="clear-button" style="font-size: 10pt; padding: 5px 10px;">Clear Motor Status</button>
+            </div>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Send/Receive Data Display</legend>
+        <div id="data-display"></div>
+        <button id="clear-button" type="button" class="clear-button">Clear</button>
+        <button id="download-csv-button" type="button" class="download-csv-button">Download CSV</button>
+      </fieldset>
+    </div>
+
+  <!-- End of post-connection display area -->
+  </div>
+
+  <footer>
+    <p>Please use a Web Serial API compatible browser (Chrome, Edge)</p>
+  </footer>
+
+  <script>
+    const connectSetAButton = document.getElementById('connect-set-a-button');
+    const connectSetBButton = document.getElementById('connect-set-b-button');
+    const disconnectButton = document.getElementById('disconnect-button');
+    const powerOnButton = document.getElementById('power-on-button');
+    const powerOffButton = document.getElementById('power-off-button');
+    const clearButton = document.getElementById('clear-button');
+    const dataDisplay = document.getElementById('data-display');
+
+    // Motor status buttons for basic function tab
+    const mainStartSendingDataButton = document.getElementById('main-start-sending-data-button');
+    const mainStopSendingDataButton = document.getElementById('main-stop-sending-data-button');
+    const mainClearMotorStatusButton = document.getElementById('main-clear-motor-status-button');
+
+    // Noop display for removed tabs (Speed Profile / Custom Command) - avoids null reference
+    const noopDisplay = { textContent: '', scrollTop: 0, get scrollHeight() { return 0 } };
+    const speedProfileDataDisplay = document.getElementById('speed-profile-data-display') || noopDisplay;
+    const customCommandDataDisplay = document.getElementById('custom-command-data-display') || noopDisplay;
+
+    // Speed profile elements (removed tab - kept as null for compatibility)
+    const getSpeedProfilesButton = document.getElementById('get-speed-profiles-button');
+    const setSpeedProfilesButton = document.getElementById('set-speed-profiles-button');
+    const cancelSpeedProfilesButton = document.getElementById('cancel-speed-profiles-button');
+    const speedProfilesStatus = document.getElementById('speed-profiles-status');
+    const speedProfileClearButton = document.getElementById('speed-profile-clear-button');
+
+    // Custom command elements (removed tab - kept as null for compatibility)
+    const powerStateInput = document.getElementById('power-state-input');
+    const sendSetPowerButton = document.getElementById('send-set-power-button');
+    const commandPreview = document.getElementById('command-preview');
+    const commandHexDisplay = document.getElementById('command-hex-display');
+    const customCommandClearButton = document.getElementById('custom-command-clear-button');
+
+    // START_SENDING_DATA command elements (removed tab)
+    const dataSetInput = document.getElementById('data-set-input');
+    const sendIntervalInput = document.getElementById('send-interval-input');
+    const speedProfileInput = document.getElementById('speed-profile-input');
+    const sendStartSendingDataButton = document.getElementById('send-start-sending-data-button');
+    const startSendingDataPreview = document.getElementById('start-sending-data-preview');
+    const startSendingDataHexDisplay = document.getElementById('start-sending-data-hex-display');
+
+    // STOP_SENDING_DATA command elements (removed tab)
+    const sendStopSendingDataButton = document.getElementById('send-stop-sending-data-button');
+    const stopSendingDataPreview = document.getElementById('stop-sending-data-preview');
+    const stopSendingDataHexDisplay = document.getElementById('stop-sending-data-hex-display');
+
+    // SET_JOYSTICK command elements (removed tab)
+    const bodyPriorityInput = document.getElementById('body-priority-input');
+    const forwardBackwardInput = document.getElementById('forward-backward-input');
+    const leftRightInput = document.getElementById('left-right-input');
+    const sendSetJoystickButton = document.getElementById('send-set-joystick-button');
+    const sendSetJoystickContinuousButton = document.getElementById('send-set-joystick-continuous-button');
+    const setJoystickPreview = document.getElementById('set-joystick-preview');
+    const setJoystickHexDisplay = document.getElementById('set-joystick-hex-display');
+
+    // SET_SPEED_PROFILE command elements (removed tab)
+    const speedProfileInputs = [];
+    for (let i = 4; i <= 13; i++) {
+      speedProfileInputs[i] = document.getElementById(`sp-byte-${i}`);
+    }
+    const sendSetSpeedProfileButton = document.getElementById('send-set-speed-profile-button');
+    const setSpeedProfilePreview = document.getElementById('set-speed-profile-preview');
+    const setSpeedProfileHexDisplay = document.getElementById('set-speed-profile-hex-display');
+
+    // SET_BATTERY_SAVING command elements (removed tab)
+    const batteryLevelInput = document.getElementById('battery-level-input');
+    const buzzerSettingInput = document.getElementById('buzzer-setting-input');
+    const sendSetBatterySavingButton = document.getElementById('send-set-battery-saving-button');
+    const setBatterySavingPreview = document.getElementById('set-battery-saving-preview');
+    const setBatterySavingHexDisplay = document.getElementById('set-battery-saving-hex-display');
+
+    // SET_VELOCITY command elements (removed tab)
+    const velocityBodyPriorityInput = document.getElementById('velocity-body-priority-input');
+    const forwardBackwardVelocityInput = document.getElementById('forward-backward-velocity-input');
+    const leftRightVelocityInput = document.getElementById('left-right-velocity-input');
+    const sendSetVelocityButton = document.getElementById('send-set-velocity-button');
+    const sendSetVelocityContinuousButton = document.getElementById('send-set-velocity-continuous-button');
+    const setVelocityPreview = document.getElementById('set-velocity-preview');
+    const setVelocityHexDisplay = document.getElementById('set-velocity-hex-display');
+
+    // Joystick elements
+    const joystick = document.getElementById('joystick');
+    const knob = document.getElementById('knob');
+    const joystickValues = document.getElementById('joystick-values');
+
+    // Omni Platform: two serial ports (SET_A, SET_B)
+    let portA;
+    let portB;
+    let keepReading = true;
+    let readerA;
+    let readerB;
+    let closed;
+    let isConnected = false; // true when both portA and portB are connected
+
+    // Joystick state
+    let joystickActive = false;
+    let joystickData = { x: 0, y: 0 };
+    let joystickInterval = null;
+
+    // Speed profile state
+    let speedProfiles = [];
+    let currentSpeedMode = 0;
+    let isGettingSpeedProfiles = false;
+    let isCancellingSpeedProfiles = false; // Cancel flag
+    let speedProfileTimeout = null;
+    let speedProfileBuffer = new Uint8Array(0); // Speed profile dedicated buffer
+    let speedProfilesRetrieved = false; // Speed profile retrieval completion flag
+    let motorStatusBuffer = new Uint8Array(0); // Motor status dedicated buffer
+    let deviceModel = 'CR2'; // For storing device model (initial value: CR2)
+
+    // UI display switching function (Omni: show post-connection only when BOTH ports are connected)
+    function updateConnectionUI() {
+      const preConnectionArea = document.getElementById('pre-connection-area');
+      const postConnectionArea = document.getElementById('post-connection-area');
+      const connectSetAButton = document.getElementById('connect-set-a-button');
+      const connectSetBButton = document.getElementById('connect-set-b-button');
+      const statusSetA = document.getElementById('status-set-a');
+      const statusSetB = document.getElementById('status-set-b');
+
+      const bothConnected = !!(portA && portB);
+      isConnected = bothConnected;
+
+      if (bothConnected) {
+        preConnectionArea.style.display = 'none';
+        postConnectionArea.style.display = 'block';
+      } else {
+        preConnectionArea.style.display = 'flex';
+        postConnectionArea.style.display = 'none';
+      }
+
+      // Update SET_A button and status
+      if (connectSetAButton) {
+        connectSetAButton.textContent = portA ? 'Connected SET_A' : 'Connect SET_A';
+        connectSetAButton.disabled = !!portA;
+      }
+      if (statusSetA) {
+        statusSetA.textContent = portA ? 'Connected' : 'Not connected';
+        statusSetA.style.color = portA ? '#28a745' : '#666';
+      }
+
+      // Update SET_B button and status
+      if (connectSetBButton) {
+        connectSetBButton.textContent = portB ? 'Connected SET_B' : 'Connect SET_B';
+        connectSetBButton.disabled = !!portB;
+      }
+      if (statusSetB) {
+        statusSetB.textContent = portB ? 'Connected' : 'Not connected';
+        statusSetB.style.color = portB ? '#28a745' : '#666';
+      }
+    }
+
+    // True when at least one port is open and writable (Omni Platform)
+    function hasWritablePort() {
+      return (portA && portA.writable) || (portB && portB.writable);
+    }
+
+    // Write same data to both ports (Omni Platform)
+    async function writeToBothPorts(data) {
+      const ports = [portA, portB].filter(p => p && p.writable);
+      await Promise.all(ports.map(async (p) => {
+        const writer = p.writable.getWriter();
+        try {
+          await writer.write(data);
+        } finally {
+          writer.releaseLock();
+        }
+      }));
+    }
+
+    // Write to a single port (for joystick where SET_A and SET_B get different values)
+    async function writeToPortA(data) {
+      if (portA && portA.writable) {
+        const writer = portA.writable.getWriter();
+        try {
+          await writer.write(data);
+        } finally {
+          writer.releaseLock();
+        }
+      }
+    }
+    async function writeToPortB(data) {
+      if (portB && portB.writable) {
+        const writer = portB.writable.getWriter();
+        try {
+          await writer.write(data);
+        } finally {
+          writer.releaseLock();
+        }
+      }
+    }
+
+    // Tab switching function
+    function switchTab(tabName) {
+      // Hide all tab contents
+      const tabContents = document.querySelectorAll('.tab-content');
+      tabContents.forEach(content => content.classList.remove('active'));
+
+      // Deactivate all tab buttons
+      const tabButtons = document.querySelectorAll('.tab-button');
+      tabButtons.forEach(button => button.classList.remove('active'));
+
+      // Show selected tab
+      if (tabName === 'main') {
+        document.getElementById('main-tab').classList.add('active');
+        document.querySelector('.tab-button[onclick="switchTab(\'main\')"]').classList.add('active');
+      }
+
+      // Scroll to top when switching tabs
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    }
+
+    // Get Japan time string in YYYY/MM/DD HH:MM:SS format for log display
+    function getJapanTimeString() {
+      const now = new Date();
+      const formatter = new Intl.DateTimeFormat('ja-JP', {
+        timeZone: 'Asia/Tokyo',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
+      });
+      
+      const parts = formatter.formatToParts(now);
+      const year = parts.find(p => p.type === 'year').value;
+      const month = parts.find(p => p.type === 'month').value;
+      const day = parts.find(p => p.type === 'day').value;
+      const hours = parts.find(p => p.type === 'hour').value;
+      const minutes = parts.find(p => p.type === 'minute').value;
+      const seconds = parts.find(p => p.type === 'second').value;
+      
+      return `${year}/${month}/${day} ${hours}:${minutes}:${seconds}`;
+    }
+
+    // Data display function (displayed on all tabs)
+    function displayData(data) {
+      const timestamp = getJapanTimeString();
+      const hexData = Array.from(data).map(byte => '0x' + byte.toString(16).toUpperCase().padStart(2, '0')).join(' ');
+      const message = `[${timestamp}] Received: ${hexData}\n`;
+      dataDisplay.textContent += message;
+      speedProfileDataDisplay.textContent += message;
+      customCommandDataDisplay.textContent += message;
+      dataDisplay.scrollTop = dataDisplay.scrollHeight;
+      speedProfileDataDisplay.scrollTop = speedProfileDataDisplay.scrollHeight;
+      customCommandDataDisplay.scrollTop = customCommandDataDisplay.scrollHeight;
+    }
+
+    // CSV download button elements
+    const downloadCsvButton = document.getElementById('download-csv-button');
+    const speedProfileDownloadCsvButton = document.getElementById('speed-profile-download-csv-button');
+    const customCommandDownloadCsvButton = document.getElementById('custom-command-download-csv-button');
+
+    // Get Japan time string for filename (YYYYMMDD_HHMMSS format)
+    function getJapanTimeStringForFilename() {
+      const now = new Date();
+      const formatter = new Intl.DateTimeFormat('ja-JP', {
+        timeZone: 'Asia/Tokyo',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
+      });
+      
+      const parts = formatter.formatToParts(now);
+      const year = parts.find(p => p.type === 'year').value;
+      const month = parts.find(p => p.type === 'month').value;
+      const day = parts.find(p => p.type === 'day').value;
+      const hours = parts.find(p => p.type === 'hour').value;
+      const minutes = parts.find(p => p.type === 'minute').value;
+      const seconds = parts.find(p => p.type === 'second').value;
+      
+      return `${year}${month}${day}_${hours}${minutes}${seconds}`;
+    }
+
+    // CSV download function
+    function downloadCsv(dataDisplayElement, filename) {
+      const logText = dataDisplayElement.textContent;
+      if (!logText.trim()) {
+        alert('ダウンロードするログデータがありません。');
+        return;
+      }
+
+      // Parse log text and convert to CSV
+      // Log format: [YYYY/MM/DD HH:MM:SS] Type: hex data
+      const lines = logText.split('\n').filter(line => line.trim());
+      const csvRows = ['Timestamp,Type,Data'];
+      
+      lines.forEach(line => {
+        // Skip version response parse content (Model CR2, Version: X.XX)
+        const afterBracket = line.substring(line.indexOf(']') + 1).trim();
+        if (afterBracket === 'Model CR2' || afterBracket.startsWith('Version: ')) {
+          return;
+        }
+        
+        // Parse log line format: [timestamp] Type: hex data
+        // Example: [2026/01/06 08:07:14] Device Information Retrieval Send: 0xAF 0x02 0x07 0xAA
+        const timestampMatch = line.match(/\[([^\]]+)\]/);
+        if (!timestampMatch) return;
+        
+        const timestamp = timestampMatch[1];
+        
+        // Extract type and data
+        // Find the part after the closing bracket and before the colon
+        const colonIndex = afterBracket.indexOf(':');
+        
+        if (colonIndex === -1) return;
+        
+        const type = afterBracket.substring(0, colonIndex).trim();
+        const data = afterBracket.substring(colonIndex + 1).trim();
+        
+        // Escape commas and quotes in CSV
+        const escapedTimestamp = `"${timestamp.replace(/"/g, '""')}"`;
+        const escapedType = `"${type.replace(/"/g, '""')}"`;
+        const escapedData = `"${data.replace(/"/g, '""')}"`;
+        
+        csvRows.push(`${escapedTimestamp},${escapedType},${escapedData}`);
+      });
+
+      // Create CSV content
+      const csvContent = csvRows.join('\n');
+      
+      // Create blob and download
+      const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }
+
+    // CSV download button handlers
+    downloadCsvButton.addEventListener('click', () => {
+      const timestamp = getJapanTimeStringForFilename();
+      downloadCsv(dataDisplay, `whill_log_${timestamp}.csv`);
+    });
+
+    if (speedProfileDownloadCsvButton) speedProfileDownloadCsvButton.addEventListener('click', () => {
+      const timestamp = getJapanTimeStringForFilename();
+      downloadCsv(speedProfileDataDisplay, `whill_log_${timestamp}.csv`);
+    });
+
+    if (customCommandDownloadCsvButton) customCommandDownloadCsvButton.addEventListener('click', () => {
+      const timestamp = getJapanTimeStringForFilename();
+      downloadCsv(customCommandDataDisplay, `whill_log_${timestamp}.csv`);
+    });
+
+    // Clear button handler (clear all tabs)
+    clearButton.addEventListener('click', () => {
+      dataDisplay.textContent = '';
+      speedProfileDataDisplay.textContent = '';
+      customCommandDataDisplay.textContent = '';
+    });
+
+    // Clear button handler for speed profile (clear all tabs)
+    if (speedProfileClearButton) speedProfileClearButton.addEventListener('click', () => {
+      dataDisplay.textContent = '';
+      speedProfileDataDisplay.textContent = '';
+      customCommandDataDisplay.textContent = '';
+    });
+
+    // Clear Motor Status button handler
+    const clearMotorStatusButton = document.getElementById('clear-motor-status-button');
+    const clearMotorStatusVelocityButton = document.getElementById('clear-motor-status-velocity-button');
+    const clearMotorStatusStartSendingButton = document.getElementById('clear-motor-status-start-sending-button');
+    
+    function clearMotorStatusDisplays() {
+      // Reset three motor status displays
+      const displayIds = ['', '-velocity', '-start-sending'];
+      
+      const isModelCR = document.getElementById('model-cr-radio').checked;
+      displayIds.forEach(suffix => {
+        const batteryStatusEl = document.getElementById(`battery-status${suffix}`);
+        const buzzerStatusEl = document.getElementById(`buzzer-status${suffix}`);
+        if (isModelCR) {
+          batteryStatusEl.previousElementSibling.textContent = '';
+          batteryStatusEl.textContent = '';
+          buzzerStatusEl.previousElementSibling.textContent = '';
+          buzzerStatusEl.textContent = '';
+        } else {
+          batteryStatusEl.previousElementSibling.textContent = 'Low Level:';
+          batteryStatusEl.textContent = '-';
+          buzzerStatusEl.previousElementSibling.textContent = 'Low Buzzer:';
+          buzzerStatusEl.textContent = '-';
+        }
+        document.getElementById(`battery-level${suffix}`).textContent = '-';
+        document.getElementById(`battery-current${suffix}`).textContent = '-';
+        document.getElementById(`joystick-forward${suffix}`).textContent = '-';
+        document.getElementById(`joystick-turn${suffix}`).textContent = '-';
+        document.getElementById(`motor-angle-right${suffix}`).textContent = '-';
+        document.getElementById(`motor-angle-left${suffix}`).textContent = '-';
+        document.getElementById(`motor-speed-right${suffix}`).textContent = '-';
+        document.getElementById(`motor-speed-left${suffix}`).textContent = '-';
+        document.getElementById(`power-status${suffix}`).textContent = '-';
+        document.getElementById(`speed-mode${suffix}`).textContent = '-';
+        document.getElementById(`error-code${suffix}`).textContent = '-';
+        document.getElementById(`angle-counter${suffix}`).textContent = '-';
+        
+        // Reset color
+        document.getElementById(`error-code${suffix}`).style.color = '#000';
+        document.getElementById(`error-code${suffix}`).style.fontWeight = 'normal';
+        document.getElementById(`battery-level${suffix}`).style.color = '#000';
+      });
+      
+      // Clear motor status buffer
+      motorStatusBuffer = new Uint8Array(0);
+    }
+
+    // Function to clear motor status display for basic function tab
+    function clearMainMotorStatusDisplay() {
+      const isModelCR = document.getElementById('model-cr-radio').checked;
+      document.getElementById('main-battery-level').textContent = '-';
+      document.getElementById('main-battery-current').textContent = '-';
+      const mainBatteryStatusEl = document.getElementById('main-battery-status');
+      const mainBuzzerStatusEl = document.getElementById('main-buzzer-status');
+      if (isModelCR) {
+        mainBatteryStatusEl.previousElementSibling.textContent = '';
+        mainBatteryStatusEl.textContent = '';
+        mainBuzzerStatusEl.previousElementSibling.textContent = '';
+        mainBuzzerStatusEl.textContent = '';
+      } else {
+        mainBatteryStatusEl.previousElementSibling.textContent = 'Low Level:';
+        mainBatteryStatusEl.textContent = '-';
+        mainBuzzerStatusEl.previousElementSibling.textContent = 'Low Buzzer:';
+        mainBuzzerStatusEl.textContent = '-';
+      }
+      document.getElementById('main-power-status').textContent = '-';
+      document.getElementById('main-speed-mode').textContent = '-';
+      document.getElementById('main-error-code').textContent = '-';
+      document.getElementById('main-angle-counter').textContent = '-';
+      document.getElementById('main-motor-angle-right').textContent = '-';
+      document.getElementById('main-motor-angle-left').textContent = '-';
+      document.getElementById('main-motor-speed-right').textContent = '-';
+      document.getElementById('main-motor-speed-left').textContent = '-';
+      
+      // Reset color
+      document.getElementById('main-error-code').style.color = '#000';
+      document.getElementById('main-error-code').style.fontWeight = 'normal';
+      document.getElementById('main-battery-level').style.color = '#000';
+    }
+
+    // Function to update motor status display for basic function tab
+    function updateMainMotorStatusDisplay(status) {
+      const isModelCR = document.getElementById('model-cr-radio').checked;
+      // Battery information
+      document.getElementById('main-battery-level').textContent = `${status.batteryLevel}%`;
+      document.getElementById('main-battery-current').textContent = `${(status.batteryCurrent * 2).toFixed(1)}mA`;
+      const mainBatteryStatusEl = document.getElementById('main-battery-status');
+      const mainBuzzerStatusEl = document.getElementById('main-buzzer-status');
+      if (isModelCR) {
+        mainBatteryStatusEl.previousElementSibling.textContent = '';
+        mainBatteryStatusEl.textContent = '';
+        mainBuzzerStatusEl.previousElementSibling.textContent = '';
+        mainBuzzerStatusEl.textContent = '';
+      } else {
+        mainBatteryStatusEl.previousElementSibling.textContent = 'Low Level:';
+        mainBatteryStatusEl.textContent = `${status.battery}%`;
+        mainBuzzerStatusEl.previousElementSibling.textContent = 'Low Buzzer:';
+        mainBuzzerStatusEl.textContent = status.buzzer ? 'ON' : 'OFF';
+      }
+
+      // System status information
+      document.getElementById('main-power-status').textContent = status.power ? 'ON' : 'OFF';
+      // Speed mode display conversion (0→1, 1→2, 2→3, 3→4, others→-)
+      let speedModeDisplay = '-';
+      if (status.speedMode === 0) speedModeDisplay = '1';
+      else if (status.speedMode === 1) speedModeDisplay = '2';
+      else if (status.speedMode === 2) speedModeDisplay = '3';
+      else if (status.speedMode === 3) speedModeDisplay = '4';
+      document.getElementById('main-speed-mode').textContent = speedModeDisplay;
+      document.getElementById('main-error-code').textContent = status.errorCode || 'None';
+      document.getElementById('main-angle-counter').textContent = status.angleCounter;
+
+      // Motor angle information (0.001rad unit)
+      document.getElementById('main-motor-angle-right').textContent = `${(status.motorAngleRight * 0.001).toFixed(3)}rad`;
+      document.getElementById('main-motor-angle-left').textContent = `${(status.motorAngleLeft * 0.001).toFixed(3)}rad`;
+
+      // Motor speed information (0.004km/h unit)
+      document.getElementById('main-motor-speed-right').textContent = `${(status.motorSpeedRight * 0.004).toFixed(3)}km/h`;
+      document.getElementById('main-motor-speed-left').textContent = `${(status.motorSpeedLeft * 0.004).toFixed(3)}km/h`;
+
+      // Change color according to error code
+      const errorElement = document.getElementById('main-error-code');
+      if (status.errorCode && status.errorCode !== 0) {
+        errorElement.style.color = '#dc3545';
+        errorElement.style.fontWeight = 'bold';
+      } else {
+        errorElement.style.color = '#000';
+        errorElement.style.fontWeight = 'normal';
+      }
+
+      // Change color according to battery level
+      const batteryElement = document.getElementById('main-battery-level');
+      if (status.batteryLevel < 20) {
+        batteryElement.style.color = '#dc3545';
+      } else if (status.batteryLevel < 50) {
+        batteryElement.style.color = '#ffc107';
+      } else {
+        batteryElement.style.color = '#28a745';
+      }
+    }
+    
+    if (clearMotorStatusButton) clearMotorStatusButton.addEventListener('click', clearMotorStatusDisplays);
+    if (clearMotorStatusVelocityButton) clearMotorStatusVelocityButton.addEventListener('click', clearMotorStatusDisplays);
+    if (clearMotorStatusStartSendingButton) clearMotorStatusStartSendingButton.addEventListener('click', clearMotorStatusDisplays);
+
+    // Clear Motor Status button for basic function tab
+    mainClearMotorStatusButton.addEventListener('click', clearMainMotorStatusDisplay);
+
+    // Status retrieval start button for basic function tab
+    mainStartSendingDataButton.addEventListener('click', async () => {
+      if (hasWritablePort()) {
+        try {
+          // Correct START_SENDING_DATA command: 0xAF 0x06 0x00 0x01 0x01 0xF4 0x00 0x5D
+          const startSendingDataCommand = new Uint8Array([0xAF, 0x06, 0x00, 0x01, 0x01, 0xF4, 0x00, 0x5D]);
+          await writeToBothPorts(startSendingDataCommand);
+
+          const timestamp = getJapanTimeString();
+          const hexData = Array.from(startSendingDataCommand).map(byte => '0x' + byte.toString(16).toUpperCase().padStart(2, '0')).join(' ');
+          const message = `[${timestamp}] Send Status Retrieval Start: ${hexData}\n`;
+          dataDisplay.textContent += message;
+          speedProfileDataDisplay.textContent += message;
+          customCommandDataDisplay.textContent += message;
+          dataDisplay.scrollTop = dataDisplay.scrollHeight;
+          speedProfileDataDisplay.scrollTop = speedProfileDataDisplay.scrollHeight;
+          customCommandDataDisplay.scrollTop = customCommandDataDisplay.scrollHeight;
+        } catch (error) {
+          console.error('Start Status Retrieval Send Error:', error);
+        }
+      }
+    });
+
+    // Status retrieval stop button for basic function tab
+    mainStopSendingDataButton.addEventListener('click', async () => {
+      if (hasWritablePort()) {
+        try {
+          // Build STOP_SENDING_DATA command
+          // Format: 0xAF, 0x02, 0x01, 0xAC (4 bytes fixed)
+          const stopSendingDataCommand = new Uint8Array([0xAF, 0x02, 0x01, 0xAC]);
+          await writeToBothPorts(stopSendingDataCommand);
+
+          const timestamp = getJapanTimeString();
+          const hexData = Array.from(stopSendingDataCommand).map(byte => '0x' + byte.toString(16).toUpperCase().padStart(2, '0')).join(' ');
+          const message = `[${timestamp}] Send Status Retrieval Stop: ${hexData}\n`;
+          dataDisplay.textContent += message;
+          speedProfileDataDisplay.textContent += message;
+          customCommandDataDisplay.textContent += message;
+          dataDisplay.scrollTop = dataDisplay.scrollHeight;
+          speedProfileDataDisplay.scrollTop = speedProfileDataDisplay.scrollHeight;
+          customCommandDataDisplay.scrollTop = customCommandDataDisplay.scrollHeight;
+        } catch (error) {
+          console.error('Stop Status Retrieval Send Error:', error);
+        }
+      }
+    });
+
+    // Clear button handler for custom command (clear all tabs)
+    if (customCommandClearButton) customCommandClearButton.addEventListener('click', () => {
+      dataDisplay.textContent = '';
+      speedProfileDataDisplay.textContent = '';
+      customCommandDataDisplay.textContent = '';
+    });
+
+    // Power ON button handler
+    powerOnButton.addEventListener('click', async () => {
+      if (hasWritablePort()) {
+        try {
+          const powerOnData = new Uint8Array([0xAF, 0x03, 0x02, 0x01, 0xAF]);
+          await writeToBothPorts(powerOnData);
+          
+          const timestamp1 = getJapanTimeString();
+          const hexData = Array.from(powerOnData).map(byte => '0x' + byte.toString(16).toUpperCase().padStart(2, '0')).join(' ');
+          const message1 = `[${timestamp1}] Send Power ON (1st time): ${hexData}\n`;
+          dataDisplay.textContent += message1;
+          customCommandDataDisplay.textContent += message1;
+          
+          await new Promise(resolve => setTimeout(resolve, 100));
+          await writeToBothPorts(powerOnData);
+          
+          const timestamp2 = getJapanTimeString();
+          const message2 = `[${timestamp2}] Send Power ON (2nd time): ${hexData}\n`;
+          dataDisplay.textContent += message2;
+          customCommandDataDisplay.textContent += message2;
+          
+          // Scroll to bottom
+          dataDisplay.scrollTop = dataDisplay.scrollHeight;
+          customCommandDataDisplay.scrollTop = customCommandDataDisplay.scrollHeight;
+        } catch (error) {
+          console.error('Send Error:', error);
+        }
+      }
+    });
+
+    // Power OFF button handler
+    powerOffButton.addEventListener('click', async () => {
+      if (hasWritablePort()) {
+        try {
+          const powerOffData = new Uint8Array([0xAF, 0x03, 0x02, 0x00, 0xAE]);
+          await writeToBothPorts(powerOffData);
+
+          const timestamp = getJapanTimeString();
+          const hexData = Array.from(powerOffData).map(byte => '0x' + byte.toString(16).toUpperCase().padStart(2, '0')).join(' ');
+          const message = `[${timestamp}] Send Power OFF: ${hexData}\n`;
+          dataDisplay.textContent += message;
+          customCommandDataDisplay.textContent += message;
+          dataDisplay.scrollTop = dataDisplay.scrollHeight;
+          customCommandDataDisplay.scrollTop = customCommandDataDisplay.scrollHeight;
+        } catch (error) {
+          console.error('Send Error:', error);
+        }
+      }
+    });
+
+    // Device information automatic retrieval
+    async function getDeviceInfo() {
+      if (hasWritablePort()) {
+        try {
+          const versionData = new Uint8Array([0xAF, 0x02, 0x07, 0xAA]);
+          await writeToBothPorts(versionData);
+
+          const timestamp = getJapanTimeString();
+          const hexData = Array.from(versionData).map(byte => '0x' + byte.toString(16).toUpperCase().padStart(2, '0')).join(' ');
+          const message = `[${timestamp}] Send Device Information Retrieval: ${hexData}\n`;
+          dataDisplay.textContent += message;
+          speedProfileDataDisplay.textContent += message;
+          customCommandDataDisplay.textContent += message;
+          dataDisplay.scrollTop = dataDisplay.scrollHeight;
+          speedProfileDataDisplay.scrollTop = speedProfileDataDisplay.scrollHeight;
+          customCommandDataDisplay.scrollTop = customCommandDataDisplay.scrollHeight;
+
+          // Start version response waiting process
+          await waitForVersionResponse();
+        } catch (error) {
+          console.error('Device Information Retrieval Error:', error);
+          // Error does not affect connection process
+        }
+      } else {
+        console.warn('Device information retrieval: Port is not available');
+      }
+    }
+
+    // Received data buffer
+    let receivedBuffer = new Uint8Array(0);
+
+    // Variables for version response waiting
+    let waitingForVersionResponse = false;
+    let versionResponseTimeout = null;
+    let versionResponseRetryCount = 0;
+    let versionResponseMaxRetries = 3;
+
+    // Version response waiting process
+    async function waitForVersionResponse() {
+      waitingForVersionResponse = true;
+      versionResponseRetryCount = 0;
+
+      // Retry process if no response after 500ms
+      versionResponseTimeout = setTimeout(async () => {
+        if (waitingForVersionResponse && versionResponseRetryCount < versionResponseMaxRetries) {
+          versionResponseRetryCount++;
+
+          // Resend
+          if (hasWritablePort()) {
+            try {
+              const versionData = new Uint8Array([0xAF, 0x02, 0x07, 0xAA]);
+              await writeToBothPorts(versionData);
+
+              const timestamp = getJapanTimeString();
+              const hexData = Array.from(versionData).map(byte => '0x' + byte.toString(16).toUpperCase().padStart(2, '0')).join(' ');
+              const message = `[${timestamp}] Retry (${versionResponseRetryCount}/${versionResponseMaxRetries}): ${hexData}\n`;
+              dataDisplay.textContent += message;
+              speedProfileDataDisplay.textContent += message;
+              dataDisplay.scrollTop = dataDisplay.scrollHeight;
+              speedProfileDataDisplay.scrollTop = speedProfileDataDisplay.scrollHeight;
+
+              // Wait 500ms after resend
+              setTimeout(() => {
+                if (waitingForVersionResponse && versionResponseRetryCount >= versionResponseMaxRetries) {
+                  const timestamp = getJapanTimeString();
+                  const message = `[${timestamp}] Device Information Retrieval Failed (Max retries reached)\n`;
+                  dataDisplay.textContent += message;
+                  speedProfileDataDisplay.textContent += message;
+                  dataDisplay.scrollTop = dataDisplay.scrollHeight;
+                  speedProfileDataDisplay.scrollTop = speedProfileDataDisplay.scrollHeight;
+
+                  // Update device information
+                  updateDeviceInfo('unknown', '--.--');
+
+                  waitingForVersionResponse = false;
+                }
+              }, 500);
+            } catch (error) {
+              console.error('Resend Error:', error);
+            }
+          }
+        }
+      }, 500);
+    }
+
+    // Power ON response check function
+    function checkPowerOnResponse(data) {
+      // Add data to buffer
+      const newBuffer = new Uint8Array(receivedBuffer.length + data.length);
+      newBuffer.set(receivedBuffer);
+      newBuffer.set(data, receivedBuffer.length);
+      receivedBuffer = newBuffer;
+
+      // Check 4-byte response pattern: {0xAF, 0x02, 0x52, 0xFF}
+      if (receivedBuffer.length >= 4) {
+        if (receivedBuffer[0] === 0xAF &&
+          receivedBuffer[1] === 0x02 &&
+          receivedBuffer[2] === 0x52 &&
+          receivedBuffer[3] === 0xFF) {
+          // Process when Power ON response is received
+          const timestamp = getJapanTimeString();
+          const message = `[${timestamp}] Power ON Response Received\n`;
+          dataDisplay.textContent += message;
+          dataDisplay.scrollTop = dataDisplay.scrollHeight;
+        }
+
+        // Clear buffer (remove processed data)
+        receivedBuffer = new Uint8Array(0);
+      }
+    }
+
+    // Device information update function
+    function updateDeviceInfo(model, version) {
+      // Update device information display in top right
+      updateDeviceInfoDisplay(model, version);
+    }
+
+    // Device information display update function (top right)
+    function updateDeviceInfoDisplay(model, version) {
+      const deviceInfoDisplay = document.getElementById('device-info-display');
+      const versionLabelElement = deviceInfoDisplay.querySelector('.version-label');
+      const versionValueElement = deviceInfoDisplay.querySelector('.version-value');
+
+      if (versionLabelElement && versionValueElement) {
+        versionLabelElement.textContent = 'Version:';
+        if (version && version !== 'Unknown' && version !== '--.--') {
+          versionValueElement.textContent = version;
+        } else {
+          versionValueElement.textContent = '--.--';
+        }
+      }
+      deviceInfoDisplay.style.color = '#0075B8';
+    }
+
+    // Update Battery Low Level / Low Buzzer display according to selected model (CR: show "", CR2: show label + value)
+    function updateBatteryLowLevelBuzzerForModel() {
+      const isModelCR = document.getElementById('model-cr-radio').checked;
+      const displayIds = ['', '-velocity', '-start-sending'];
+      // Main tab
+      const mainBatteryStatusEl = document.getElementById('main-battery-status');
+      const mainBuzzerStatusEl = document.getElementById('main-buzzer-status');
+      if (mainBatteryStatusEl && mainBuzzerStatusEl) {
+        if (isModelCR) {
+          mainBatteryStatusEl.previousElementSibling.textContent = '';
+          mainBatteryStatusEl.textContent = '';
+          mainBuzzerStatusEl.previousElementSibling.textContent = '';
+          mainBuzzerStatusEl.textContent = '';
+        } else {
+          mainBatteryStatusEl.previousElementSibling.textContent = 'Low Level:';
+          mainBuzzerStatusEl.previousElementSibling.textContent = 'Low Buzzer:';
+        }
+      }
+      // Other tabs
+      displayIds.forEach(suffix => {
+        const batteryStatusEl = document.getElementById(`battery-status${suffix}`);
+        const buzzerStatusEl = document.getElementById(`buzzer-status${suffix}`);
+        if (batteryStatusEl && buzzerStatusEl) {
+          if (isModelCR) {
+            batteryStatusEl.previousElementSibling.textContent = '';
+            batteryStatusEl.textContent = '';
+            buzzerStatusEl.previousElementSibling.textContent = '';
+            buzzerStatusEl.textContent = '';
+          } else {
+            batteryStatusEl.previousElementSibling.textContent = 'Low Level:';
+            buzzerStatusEl.previousElementSibling.textContent = 'Low Buzzer:';
+          }
+        }
+      });
+    }
+
+    // Model selection radio button event handlers
+    const modelCrRadio = document.getElementById('model-cr-radio');
+    const modelCr2Radio = document.getElementById('model-cr2-radio');
+
+    modelCrRadio.addEventListener('change', () => {
+      if (modelCrRadio.checked) {
+        deviceModel = 'CR';
+        // Always set version to --.-- when CR model is selected
+        updateDeviceInfo('CR', '--.--');
+        updateBatteryLowLevelBuzzerForModel();
+      }
+    });
+
+    modelCr2Radio.addEventListener('change', () => {
+      if (modelCr2Radio.checked) {
+        deviceModel = 'CR2';
+        updateBatteryLowLevelBuzzerForModel();
+        // Update display if version is already known
+        const deviceInfoDisplay = document.getElementById('device-info-display');
+        const versionValueElement = deviceInfoDisplay.querySelector('.version-value');
+        if (versionValueElement) {
+          const version = versionValueElement.textContent.trim();
+          if (version && version !== '--.--' && version !== 'Unknown') {
+            updateDeviceInfo('CR2', version);
+          } else {
+            updateDeviceInfo('CR2', '--.--');
+          }
+        } else {
+          updateDeviceInfo('CR2', '--.--');
+        }
+      }
+    });
+
+    // 5-byte response check function (for version verification)
+    function checkVersionResponse(data) {
+      // Add data to buffer
+      const newBuffer = new Uint8Array(receivedBuffer.length + data.length);
+      newBuffer.set(receivedBuffer);
+      newBuffer.set(data, receivedBuffer.length);
+      receivedBuffer = newBuffer;
+
+      // Check 5-byte response pattern
+      if (receivedBuffer.length >= 5) {
+        if (waitingForVersionResponse) {
+          // Process when version response is received
+          const timestamp = getJapanTimeString();
+          const message1 = `[${timestamp}] Model CR2\n`;
+          dataDisplay.textContent += message1;
+
+          // Display version information (3rd byte: major, 4th byte: minor)
+          const majorVersion = receivedBuffer[2];
+          const minorVersion = receivedBuffer[3];
+          const versionString = `${majorVersion}.${minorVersion.toString().padStart(2, '0')}`;
+          const message2 = `[${timestamp}] Version: ${versionString}\n`;
+          dataDisplay.textContent += message2;
+          dataDisplay.scrollTop = dataDisplay.scrollHeight;
+
+          // Update device information
+          deviceModel = 'CR2';
+          updateDeviceInfo('CR2', versionString);
+          
+          // Update radio button to CR2
+          const modelCr2Radio = document.getElementById('model-cr2-radio');
+          if (modelCr2Radio) {
+            modelCr2Radio.checked = true;
+          }
+
+          // Clear timeout
+          if (versionResponseTimeout) {
+            clearTimeout(versionResponseTimeout);
+            versionResponseTimeout = null;
+          }
+          waitingForVersionResponse = false;
+        }
+
+        // Clear buffer (remove processed data)
+        receivedBuffer = new Uint8Array(0);
+        // speedProfileBuffer = new Uint8Array(0); // Prevent clearing during speed profile processing
+      }
+    }
+
+    // Data received processing (per-port loop for Omni Platform)
+    async function startReadingFromPortA() {
+      while (portA && portA.readable && keepReading) {
+        readerA = portA.readable.getReader();
+        try {
+          while (true) {
+            const { value, done } = await readerA.read();
+            if (done) {
+              readerA.releaseLock();
+              break;
+            }
+            if (value) {
+              displayData(value);
+              checkPowerOnResponse(value);
+              checkVersionResponse(value);
+              checkSpeedProfileResponse(value);
+              checkMotorStatusResponse(value);
+            }
+          }
+        } catch (error) {
+          console.error('Received Error (SET_A):', error);
+        } finally {
+          readerA.releaseLock();
+        }
+      }
+    }
+
+    async function startReadingFromPortB() {
+      while (portB && portB.readable && keepReading) {
+        readerB = portB.readable.getReader();
+        try {
+          while (true) {
+            const { value, done } = await readerB.read();
+            if (done) {
+              readerB.releaseLock();
+              break;
+            }
+            if (value) {
+              displayData(value);
+              checkPowerOnResponse(value);
+              checkVersionResponse(value);
+              checkSpeedProfileResponse(value);
+              checkMotorStatusResponse(value);
+            }
+          }
+        } catch (error) {
+          console.error('Received Error (SET_B):', error);
+        } finally {
+          readerB.releaseLock();
+        }
+      }
+    }
+
+    // Enable operation buttons (only when both ports connected)
+    function enableOperationButtons() {
+      powerOnButton.disabled = false;
+      powerOffButton.disabled = false;
+      if (getSpeedProfilesButton) getSpeedProfilesButton.disabled = false;
+      if (setSpeedProfilesButton) setSpeedProfilesButton.disabled = false;
+      if (sendSetPowerButton) sendSetPowerButton.disabled = false;
+      if (sendStartSendingDataButton) sendStartSendingDataButton.disabled = false;
+      if (sendStopSendingDataButton) sendStopSendingDataButton.disabled = false;
+      if (sendSetJoystickButton) sendSetJoystickButton.disabled = false;
+      if (sendSetJoystickContinuousButton) sendSetJoystickContinuousButton.disabled = false;
+      if (sendSetSpeedProfileButton) sendSetSpeedProfileButton.disabled = false;
+      if (sendSetBatterySavingButton) sendSetBatterySavingButton.disabled = false;
+      if (sendSetVelocityButton) sendSetVelocityButton.disabled = false;
+      if (sendSetVelocityContinuousButton) sendSetVelocityContinuousButton.disabled = false;
+      mainStartSendingDataButton.disabled = false;
+      mainStopSendingDataButton.disabled = false;
+      downloadCsvButton.disabled = false;
+      if (speedProfileDownloadCsvButton) speedProfileDownloadCsvButton.disabled = false;
+      if (customCommandDownloadCsvButton) customCommandDownloadCsvButton.disabled = false;
+    }
+
+    // Connection processing (Omni: one port per button)
+    async function connectSerialA() {
+      try {
+        portA = await navigator.serial.requestPort({});
+        await portA.open({ baudRate: 38400 });
+        keepReading = true;
+        updateConnectionUI();
+        startReadingFromPortA(); // fire and forget
+        if (portA && portB) {
+          enableOperationButtons();
+          updateDeviceInfo('unknown', '--.--');
+          setSpeedProfileInputsEditable(false);
+          speedProfilesRetrieved = false;
+        }
+      } catch (error) {
+        console.error('Connection Error (SET_A):', error);
+        portA = undefined;
+        updateConnectionUI();
+        alert('Connection failed (SET_A). Please check the device.');
+      }
+    }
+
+    async function connectSerialB() {
+      try {
+        portB = await navigator.serial.requestPort({});
+        await portB.open({ baudRate: 38400 });
+        keepReading = true;
+        updateConnectionUI();
+        startReadingFromPortB(); // fire and forget
+        if (portA && portB) {
+          enableOperationButtons();
+          updateDeviceInfo('unknown', '--.--');
+          setSpeedProfileInputsEditable(false);
+          speedProfilesRetrieved = false;
+        }
+      } catch (error) {
+        console.error('Connection Error (SET_B):', error);
+        portB = undefined;
+        updateConnectionUI();
+        alert('Connection failed (SET_B). Please check the device.');
+      }
+    }
+
+    async function disconnectSerial() {
+      try {
+        isConnected = false;
+        keepReading = false;
+
+        // Cancel both readers
+        if (readerA) {
+          try {
+            await readerA.cancel();
+          } catch (e) { /* ignore */ }
+          readerA.releaseLock();
+          readerA = undefined;
+        }
+        if (readerB) {
+          try {
+            await readerB.cancel();
+          } catch (e) { /* ignore */ }
+          readerB.releaseLock();
+          readerB = undefined;
+        }
+
+        // Close both ports
+        if (portA) {
+          await portA.close();
+          portA = undefined;
+        }
+        if (portB) {
+          await portB.close();
+          portB = undefined;
+        }
+
+        updateConnectionUI();
+
+        powerOnButton.disabled = true;
+        powerOffButton.disabled = true;
+        if (getSpeedProfilesButton) getSpeedProfilesButton.disabled = true;
+        if (setSpeedProfilesButton) setSpeedProfilesButton.disabled = true;
+        if (sendSetPowerButton) sendSetPowerButton.disabled = true;
+        if (sendStartSendingDataButton) sendStartSendingDataButton.disabled = true;
+        if (sendStopSendingDataButton) sendStopSendingDataButton.disabled = true;
+        if (sendSetJoystickButton) sendSetJoystickButton.disabled = true;
+        if (sendSetJoystickContinuousButton) sendSetJoystickContinuousButton.disabled = true;
+        stopJoystickContinuousSending();
+        if (sendSetSpeedProfileButton) sendSetSpeedProfileButton.disabled = true;
+        if (sendSetBatterySavingButton) sendSetBatterySavingButton.disabled = true;
+        if (sendSetVelocityButton) sendSetVelocityButton.disabled = true;
+        if (sendSetVelocityContinuousButton) sendSetVelocityContinuousButton.disabled = true;
+        stopVelocityContinuousSending();
+
+        updateDeviceInfo('unknown', '--.--');
+        setSpeedProfileInputsEditable(false);
+        speedProfilesRetrieved = false;
+
+        if (versionResponseTimeout) {
+          clearTimeout(versionResponseTimeout);
+          versionResponseTimeout = null;
+        }
+        waitingForVersionResponse = false;
+        motorStatusBuffer = new Uint8Array(0);
+        stopJoystickInterval();
+
+        dataDisplay.textContent = '';
+        speedProfileDataDisplay.textContent = '';
+        customCommandDataDisplay.textContent = '';
+
+        switchTab('main');
+
+      } catch (error) {
+        console.error('Disconnection Error:', error);
+      }
+    }
+
+    // Web Serial API support check
+    if ('serial' in navigator) {
+      // Disable buttons in initial state
+        powerOnButton.disabled = true;
+        powerOffButton.disabled = true;
+        if (getSpeedProfilesButton) getSpeedProfilesButton.disabled = true;
+        if (setSpeedProfilesButton) setSpeedProfilesButton.disabled = true;
+        if (sendSetPowerButton) sendSetPowerButton.disabled = true;
+        if (sendStartSendingDataButton) sendStartSendingDataButton.disabled = true;
+        if (sendStopSendingDataButton) sendStopSendingDataButton.disabled = true;
+        if (sendSetJoystickButton) sendSetJoystickButton.disabled = true;
+        if (sendSetJoystickContinuousButton) sendSetJoystickContinuousButton.disabled = true;
+        if (sendSetSpeedProfileButton) sendSetSpeedProfileButton.disabled = true;
+        if (sendSetBatterySavingButton) sendSetBatterySavingButton.disabled = true;
+        if (sendSetVelocityButton) sendSetVelocityButton.disabled = true;
+        if (sendSetVelocityContinuousButton) sendSetVelocityContinuousButton.disabled = true;
+        
+        // Disable buttons for basic function tab as well
+        mainStartSendingDataButton.disabled = true;
+        mainStopSendingDataButton.disabled = true;
+        
+        // Disable CSV download buttons
+        downloadCsvButton.disabled = true;
+        if (speedProfileDownloadCsvButton) speedProfileDownloadCsvButton.disabled = true;
+        if (customCommandDownloadCsvButton) customCommandDownloadCsvButton.disabled = true;
+
+      // Connect SET_A button
+      if (connectSetAButton) connectSetAButton.addEventListener('click', async () => {
+        connectSetAButton.disabled = true;
+        try {
+          await connectSerialA();
+        } catch (error) {
+          console.error('Connection Error (SET_A):', error);
+        } finally {
+          updateConnectionUI();
+        }
+      });
+
+      // Connect SET_B button
+      if (connectSetBButton) connectSetBButton.addEventListener('click', async () => {
+        connectSetBButton.disabled = true;
+        try {
+          await connectSerialB();
+        } catch (error) {
+          console.error('Connection Error (SET_B):', error);
+        } finally {
+          updateConnectionUI();
+        }
+      });
+
+      // Disconnect button event listener (disconnects both ports)
+      disconnectButton.addEventListener('click', async () => {
+        disconnectButton.disabled = true;
+        try {
+          await disconnectSerial();
+        } catch (error) {
+          console.error('Disconnection Error:', error);
+        } finally {
+          disconnectButton.disabled = false;
+        }
+      });
+      
+      updateConnectionUI();
+    } else {
+      alert('Your browser is not supported. Please use Chrome or Edge.');
+    }
+
+    // Joystick function
+    function initJoystick() {
+      let isActive = false;
+      let startX, startY;
+      let centerX, centerY;
+      let radius;
+
+      function updateKnobPosition(x, y) {
+        const dx = x - centerX;
+        const dy = y - centerY;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        let finalX, finalY;
+
+        if (distance > radius) {
+          const angle = Math.atan2(dy, dx);
+          finalX = centerX + radius * Math.cos(angle);
+          finalY = centerY + radius * Math.sin(angle);
+        } else {
+          finalX = x;
+          finalY = y;
+        }
+
+        const normalizedX = (finalX - centerX) / radius;
+        const normalizedY = (finalY - centerY) / radius;
+
+        // Convert to relative coordinates based on joystick element
+        const joystickRect = joystick.getBoundingClientRect();
+        const relativeX = finalX - joystickRect.left;
+        const relativeY = finalY - joystickRect.top;
+
+        knob.style.left = relativeX + 'px';
+        knob.style.top = relativeY + 'px';
+        knob.style.transform = 'translate(-50%, -50%)';
+
+        // 値を更新（安全のため実際の1/10の値とする）
+        const xValue = Math.round(normalizedX * 10);
+        const yValue = Math.round(-normalizedY * 10); // Invert Y axis
+
+        joystickData = { x: xValue, y: yValue };
+        joystickValues.textContent = `X: ${xValue}, Y: ${yValue}`;
+      }
+
+      function getJoystickCenter() {
+        const rect = joystick.getBoundingClientRect();
+        centerX = rect.left + rect.width / 2;
+        centerY = rect.top + rect.height / 2;
+        radius = rect.width / 2 - 20; // Consider knob radius
+      }
+
+      function handleStart(e) {
+        e.preventDefault();
+        isActive = true;
+        joystickActive = true;
+        getJoystickCenter();
+
+        const touch = e.type === 'touchstart' ? e.touches[0] : e;
+        startX = touch.clientX;
+        startY = touch.clientY;
+
+        // Start sending joystick data at 100ms intervals
+        startJoystickInterval();
+      }
+
+      function handleMove(e) {
+        if (!isActive) return;
+        e.preventDefault();
+
+        const touch = e.type === 'touchmove' ? e.touches[0] : e;
+        updateKnobPosition(touch.clientX, touch.clientY);
+      }
+
+      function handleEnd(e) {
+        if (!isActive) return;
+        e.preventDefault();
+        isActive = false;
+        joystickActive = false;
+
+        // Return knob to center
+        knob.style.left = '50%';
+        knob.style.top = '50%';
+        knob.style.transform = 'translate(-50%, -50%)';
+
+        // Reset values
+        joystickData = { x: 0, y: 0 };
+        joystickValues.textContent = 'X: 0, Y: 0';
+
+        // Stop 100ms interval sending
+        stopJoystickInterval();
+
+        // Send final data
+        if (hasWritablePort()) {
+          sendJoystickData();
+        }
+      }
+
+      // Mouse events
+      knob.addEventListener('mousedown', handleStart);
+      document.addEventListener('mousemove', handleMove);
+      document.addEventListener('mouseup', handleEnd);
+
+      // Touch events
+      knob.addEventListener('touchstart', handleStart);
+      document.addEventListener('touchmove', handleMove);
+      document.addEventListener('touchend', handleEnd);
+    }
+
+    // Start 100ms interval sending
+    function startJoystickInterval() {
+      if (joystickInterval) {
+        clearInterval(joystickInterval);
+      }
+      joystickInterval = setInterval(() => {
+        if (joystickActive && hasWritablePort()) {
+          sendJoystickData();
+        }
+      }, 100);
+    }
+
+    // Stop 100ms interval sending
+    function stopJoystickInterval() {
+      if (joystickInterval) {
+        clearInterval(joystickInterval);
+        joystickInterval = null;
+      }
+    }
+
+    // Joystick data send function (Omni: SET_A = +45°, SET_B = -45° → different control per set)
+    // input_a = 0.7071*(y-x), input_b = 0.7071*(y+x). Uses SET_VELOCITY command.
+    async function sendJoystickData() {
+      if (!hasWritablePort()) return;
+
+      try {
+        const x = Math.max(-100, Math.min(100, joystickData.x));
+        const y = Math.max(-100, Math.min(100, joystickData.y));
+
+        // Transform for each set (SET_A: right 45°, SET_B: left 45° from front)
+        const inputA = Math.round(5 * 0.7071 * (y + x));
+        const inputB = Math.round(5 * 0.7071 * (y - x));
+        const inputAClamped = Math.max(-32768, Math.min(32767, inputA));
+        const inputBClamped = Math.max(-32768, Math.min(32767, inputB));
+
+        // SET_VELOCITY format: 0xAF, 0x07, 0x08, [Body Priority], [Fwd high], [Fwd low], [Left/Right high], [Left/Right low], [Checksum]
+        // Per set we send one forward velocity (16-bit signed) and 0 for left/right
+        function buildSetVelocityCommand(forwardVelocity) {
+          const bodyPriority = 0;
+          const header = [0xAF, 0x07, 0x08, bodyPriority];
+          const forwardHigh = (forwardVelocity >> 8) & 0xFF;
+          const forwardLow = forwardVelocity & 0xFF;
+          const leftRightHigh = 0;
+          const leftRightLow = 0;
+          const data = [forwardHigh, forwardLow, leftRightHigh, leftRightLow];
+          let checksum = 0;
+          [...header, ...data].forEach(byte => { checksum ^= byte; });
+          return new Uint8Array([...header, ...data, checksum]);
+        }
+
+        const commandA = buildSetVelocityCommand(inputAClamped);
+        const commandB = buildSetVelocityCommand(inputBClamped);
+
+        await Promise.all([
+          writeToPortA(commandA),
+          writeToPortB(commandB)
+        ]);
+
+        const timestamp = getJapanTimeString();
+        const hexA = Array.from(commandA).map(b => '0x' + (b & 0xFF).toString(16).toUpperCase().padStart(2, '0')).join(' ');
+        const hexB = Array.from(commandB).map(b => '0x' + (b & 0xFF).toString(16).toUpperCase().padStart(2, '0')).join(' ');
+        const message = `[${timestamp}] Send SET_VELOCITY SET_A: ${hexA} | SET_B: ${hexB}\n`;
+        dataDisplay.textContent += message;
+        dataDisplay.scrollTop = dataDisplay.scrollHeight;
+
+      } catch (error) {
+        console.error('Joystick Send Error:', error);
+      }
+    }
+
+    // Device information display click handler (manually retrieve device information)
+    const deviceInfoDisplay = document.getElementById('device-info-display');
+    deviceInfoDisplay.addEventListener('click', async () => {
+      if (hasWritablePort()) {
+        try {
+          await getDeviceInfo();
+        } catch (error) {
+          console.error('Manual Device Information Retrieval Error:', error);
+        }
+      } else {
+        alert('Device is not connected.');
+      }
+    });
+
+    // Speed profile retrieval button handler (tab removed)
+    if (getSpeedProfilesButton) getSpeedProfilesButton.addEventListener('click', async () => {
+      if (hasWritablePort() && !isGettingSpeedProfiles) {
+        await getAllSpeedProfiles();
+      }
+    });
+
+    // Speed profile cancel button handler (tab removed)
+    if (cancelSpeedProfilesButton) cancelSpeedProfilesButton.addEventListener('click', () => {
+      if (isGettingSpeedProfiles && speedProfilesStatus) {
+        isCancellingSpeedProfiles = true;
+        speedProfilesStatus.textContent = 'Cancelling...';
+        speedProfilesStatus.className = 'speed-profile-status speed-profile-loading';
+      }
+    });
+
+    // Speed profile setting button handler (tab removed)
+    if (setSpeedProfilesButton) setSpeedProfilesButton.addEventListener('click', async () => {
+      if (hasWritablePort()) {
+        if (!speedProfilesRetrieved) {
+          alert('Please retrieve speed profiles first.');
+          return;
+        }
+        await setAllSpeedProfiles();
+      }
+    });
+
+    // All speed profile retrieval function
+    async function getAllSpeedProfiles() {
+      if (isGettingSpeedProfiles) return;
+
+      isGettingSpeedProfiles = true;
+      isCancellingSpeedProfiles = false;
+      speedProfiles = [];
+      currentSpeedMode = 0;
+      if (getSpeedProfilesButton) getSpeedProfilesButton.disabled = true;
+      if (setSpeedProfilesButton) setSpeedProfilesButton.disabled = true;
+      if (cancelSpeedProfilesButton) cancelSpeedProfilesButton.style.display = 'inline-block';
+      
+      // Clear speed profile dedicated buffer (only at start of overall processing)
+      // speedProfileBuffer = new Uint8Array(0);
+      if (speedProfilesStatus) {
+        speedProfilesStatus.textContent = 'Retrieving...';
+        speedProfilesStatus.className = 'speed-profile-status speed-profile-loading';
+      }
+
+      try {
+        // Sequentially retrieve Speed Mode 0-5
+        for (let mode = 0; mode <= 5; mode++) {
+          // Cancel check
+          if (isCancellingSpeedProfiles) {
+            // Send data send stop command
+            const stopCommand = new Uint8Array([0xAF, 0x02, 0x01, 0xAC]);
+            await writeToBothPorts(stopCommand);
+
+            const stopTimestamp = getJapanTimeString();
+            const stopHexData = Array.from(stopCommand).map(byte => '0x' + byte.toString(16).toUpperCase().padStart(2, '0')).join(' ');
+            const stopMessage = `[${stopTimestamp}] Send Speed Profile Stop (Cancelled): ${stopHexData}\n`;
+            dataDisplay.textContent += stopMessage;
+            speedProfileDataDisplay.textContent += stopMessage;
+            dataDisplay.scrollTop = dataDisplay.scrollHeight;
+            speedProfileDataDisplay.scrollTop = speedProfileDataDisplay.scrollHeight;
+
+            speedProfilesStatus.textContent = 'Retrieving Stopped';
+            speedProfilesStatus.className = 'speed-profile-status speed-profile-error';
+            return;
+          }
+          
+          currentSpeedMode = mode;
+          if (speedProfilesStatus) speedProfilesStatus.textContent = `Speed Mode ${mode} Retrieving...`;
+          
+          await getSpeedProfile(mode);
+          
+          // Wait a bit before proceeding to next mode (100ms for CR2 model, 2700ms for others)
+          const waitTime = deviceModel === 'CR2' ? 100 : 2700;
+          await new Promise(resolve => setTimeout(resolve, waitTime));
+        }
+
+        // Processing after overall completion
+        // Stop data sending (stop last mode)
+        const finalStopCommand = new Uint8Array([0xAF, 0x02, 0x01, 0xAC]);
+        await writeToBothPorts(finalStopCommand);
+
+        const finalStopTimestamp = getJapanTimeString();
+        const finalStopHexData = Array.from(finalStopCommand).map(byte => '0x' + byte.toString(16).toUpperCase().padStart(2, '0')).join(' ');
+        const finalStopMessage = `[${finalStopTimestamp}] Send Speed Profile Stop (Final): ${finalStopHexData}\n`;
+        dataDisplay.textContent += finalStopMessage;
+        speedProfileDataDisplay.textContent += finalStopMessage;
+        dataDisplay.scrollTop = dataDisplay.scrollHeight;
+        speedProfileDataDisplay.scrollTop = speedProfileDataDisplay.scrollHeight;
+
+        // Clear buffer (overall cleanup)
+        speedProfileBuffer = new Uint8Array(0);
+
+        // Enable speed profile input fields
+        setSpeedProfileInputsEditable(true);
+        speedProfilesRetrieved = true;
+
+        if (speedProfilesStatus) {
+          speedProfilesStatus.textContent = 'Retrieval Complete';
+          speedProfilesStatus.className = 'speed-profile-status speed-profile-success';
+        }
+      } catch (error) {
+        console.error('Speed Profile Retrieval Error:', error);
+        if (speedProfilesStatus) {
+          speedProfilesStatus.textContent = 'Retrieval Error';
+          speedProfilesStatus.className = 'speed-profile-status speed-profile-error';
+        }
+      } finally {
+        isGettingSpeedProfiles = false;
+        isCancellingSpeedProfiles = false;
+        if (getSpeedProfilesButton) getSpeedProfilesButton.disabled = false;
+        if (setSpeedProfilesButton) setSpeedProfilesButton.disabled = false;
+        if (cancelSpeedProfilesButton) cancelSpeedProfilesButton.style.display = 'none';
+      }
+    }
+
+    // Individual speed profile retrieval function (new sequence)
+    async function getSpeedProfile(speedMode) {
+      return new Promise(async (resolve, reject) => {
+        try {
+          // 1. Stop data sending (stop previous mode) - Execute for Speed Mode other than 0
+          if (speedMode > 0) {
+            const stopCommand = new Uint8Array([0xAF, 0x02, 0x01, 0xAC]);
+            await writeToBothPorts(stopCommand);
+
+            const stopTimestamp = getJapanTimeString();
+            const stopHexData = Array.from(stopCommand).map(byte => '0x' + byte.toString(16).toUpperCase().padStart(2, '0')).join(' ');
+            const stopMessage = `[${stopTimestamp}] Send Speed Profile Stop: ${stopHexData}\n`;
+            dataDisplay.textContent += stopMessage;
+            speedProfileDataDisplay.textContent += stopMessage;
+            dataDisplay.scrollTop = dataDisplay.scrollHeight;
+            speedProfileDataDisplay.scrollTop = speedProfileDataDisplay.scrollHeight;
+          }
+
+          // 2. Clear buffer (remove remaining data from previous mode) - Not cleared here to support split received data
+          // speedProfileBuffer = new Uint8Array(0);
+
+          // 3. Wait 100ms (stabilization)
+          await new Promise(resolve => setTimeout(resolve, 100));
+
+          // 4. Start data sending (start retrieval of new mode)
+          const checksum = 0xAF ^ 0x06 ^ 0x00 ^ 0x00 ^ 0x0B ^ 0xB8 ^ speedMode;
+          const getCommand = new Uint8Array([0xAF, 0x06, 0x00, 0x00, 0x0B, 0xB8, speedMode, checksum]);
+          
+          await writeToBothPorts(getCommand);
+
+          const timestamp = getJapanTimeString();
+          const hexData = Array.from(getCommand).map(byte => '0x' + byte.toString(16).toUpperCase().padStart(2, '0')).join(' ');
+          const message = `[${timestamp}] Send Speed Profile Retrieval: ${hexData}\n`;
+          dataDisplay.textContent += message;
+          speedProfileDataDisplay.textContent += message;
+          dataDisplay.scrollTop = dataDisplay.scrollHeight;
+          speedProfileDataDisplay.scrollTop = speedProfileDataDisplay.scrollHeight;
+
+          // 5. Parse (process received data) - Wait 300ms (parsing time)
+          await new Promise(resolve => setTimeout(resolve, 300));
+
+          resolve();
+        } catch (error) {
+          reject(error);
+        }
+      });
+    }
+
+    // Speed profile response check function
+    function checkSpeedProfileResponse(data) {
+      // Add data to speed profile dedicated buffer
+      const oldBufferLength = speedProfileBuffer.length;
+      const newBuffer = new Uint8Array(oldBufferLength + data.length);
+      newBuffer.set(speedProfileBuffer);
+      newBuffer.set(data, oldBufferLength);
+      speedProfileBuffer = newBuffer;
+
+      // Process complete 14-byte message
+      while (speedProfileBuffer.length >= 14) {
+        // Check header (0xAF, 0x0C, 0x00)
+        if (speedProfileBuffer[0] === 0xAF && speedProfileBuffer[1] === 0x0C && speedProfileBuffer[2] === 0x00) {
+          // Parse speed profile information
+          const speedMode = speedProfileBuffer[3];
+          const fM1 = speedProfileBuffer[4];
+          const fA1 = speedProfileBuffer[5];
+          const fD1 = speedProfileBuffer[6];
+          const rM1 = speedProfileBuffer[7];
+          const rA1 = speedProfileBuffer[8];
+          const rD1 = speedProfileBuffer[9];
+          const tM1 = speedProfileBuffer[10];
+          const tA1 = speedProfileBuffer[11];
+          const tD1 = speedProfileBuffer[12];
+          const checksum = speedProfileBuffer[13];
+
+          // Save speed profile information
+          speedProfiles[speedMode] = {
+            speedMode, fM1, fA1, fD1, rM1, rA1, rD1, tM1, tA1, tD1
+          };
+
+          // Update UI
+          updateSpeedProfileDisplay(speedMode);
+
+          const completeTimestamp = getJapanTimeString();
+          const message = `[${completeTimestamp}] Speed Mode ${speedMode} Profile Received Complete\n`;
+          dataDisplay.textContent += message;
+          speedProfileDataDisplay.textContent += message;
+          dataDisplay.scrollTop = dataDisplay.scrollHeight;
+          speedProfileDataDisplay.scrollTop = speedProfileDataDisplay.scrollHeight;
+
+          // Remove processed 14 bytes
+          speedProfileBuffer = speedProfileBuffer.slice(14);
+        } else {
+          // If header doesn't match, search for header
+          let headerFound = false;
+          for (let i = 0; i < speedProfileBuffer.length - 2; i++) {
+            if (speedProfileBuffer[i] === 0xAF && speedProfileBuffer[i + 1] === 0x0C && speedProfileBuffer[i + 2] === 0x00) {
+              // If header found, rebuild buffer from that position
+              speedProfileBuffer = speedProfileBuffer.slice(i);
+              headerFound = true;
+              break;
+            }
+          }
+          
+          // If header not found, remove first 1 byte
+          if (!headerFound) {
+            speedProfileBuffer = speedProfileBuffer.slice(1);
+          }
+        }
+      }
+    }
+
+    // Motor status response check function
+    function checkMotorStatusResponse(data) {
+      // Add data to motor status dedicated buffer
+      const oldBufferLength = motorStatusBuffer.length;
+      const newBuffer = new Uint8Array(oldBufferLength + data.length);
+      newBuffer.set(motorStatusBuffer);
+      newBuffer.set(data, oldBufferLength);
+      motorStatusBuffer = newBuffer;
+
+      // Debug: Output buffer contents to console
+      if (motorStatusBuffer.length > 0) {
+        console.log('Motor status buffer:', Array.from(motorStatusBuffer).map(b => '0x' + b.toString(16).toUpperCase()).join(' '));
+      }
+
+      // Search for header and process complete message
+      let processedBytes = 0;
+      while (motorStatusBuffer.length - processedBytes >= 3) {
+        // Check header (0xAF, 0x1F, 0x01) - Dataset number 1
+        if (motorStatusBuffer[processedBytes] === 0xAF && 
+            motorStatusBuffer[processedBytes + 1] === 0x1F && 
+            motorStatusBuffer[processedBytes + 2] === 0x01) {
+          
+          console.log('Motor status header detected:', processedBytes);
+          
+          // Confirm data length (from received log, 29 bytes of data after header)
+          const expectedLength = 32; // Header 3 bytes + data 29 bytes
+          if (motorStatusBuffer.length - processedBytes >= expectedLength) {
+            // Parse motor status information (skip header 3 bytes)
+            const dataStart = processedBytes + 3;
+            const battery = motorStatusBuffer[dataStart];           // Battery saving level（4th Byte: 0x13）
+            const buzzer = motorStatusBuffer[dataStart + 1];        // Buzzer setting（5th Byte: 0x01）
+            // Ignore 6-15th bytes
+            const joystickForward = motorStatusBuffer[dataStart + 12];  // Joystick (Forward/Backward Direction) (16th Byte: 0x56)
+            const joystickTurn = motorStatusBuffer[dataStart + 13];     // Joystick (Left/Right Turn Direction) (17th Byte: 0x00)
+            const batteryLevel = motorStatusBuffer[dataStart + 14];     // Battery level (18th Byte: 0x05)
+            const batteryCurrent = ((motorStatusBuffer[dataStart + 15] << 8) | motorStatusBuffer[dataStart + 16]) << 16 >> 16; // Battery current (19-20th bytes: 0xFD 0xFE)
+            // Process as signed 16-bit integer
+            const motorAngleRight = ((motorStatusBuffer[dataStart + 17] << 8) | motorStatusBuffer[dataStart + 18]) << 16 >> 16; // Motor angle (right) (21-22nd bytes)
+            const motorAngleLeft = ((motorStatusBuffer[dataStart + 19] << 8) | motorStatusBuffer[dataStart + 20]) << 16 >> 16;  // Motor angle (left) (23-24th Byte)
+            const motorSpeedRight = ((motorStatusBuffer[dataStart + 21] << 8) | motorStatusBuffer[dataStart + 22]) << 16 >> 16; // Motor speed (right) (25-26th Byte)
+            const motorSpeedLeft = ((motorStatusBuffer[dataStart + 23] << 8) | motorStatusBuffer[dataStart + 24]) << 16 >> 16;  // Motor speed (left) (27-28th Byte)
+            const power = motorStatusBuffer[dataStart + 25];            // Power (29th byte: 0x00)
+            const speedMode = motorStatusBuffer[dataStart + 26];        // Speed mode number (30th byte: 0x00)
+            const errorCode = motorStatusBuffer[dataStart + 27];        // Error code (31st byte: 0x59)
+            const angleCounter = motorStatusBuffer[dataStart + 28];     // Angle detection counter (32nd byte: 0xAC)
+
+            // Debug: Output received data to console
+            console.log('Motor status data received:', {
+              battery, buzzer, joystickForward, joystickTurn, batteryLevel,
+              batteryCurrent, motorAngleRight, motorAngleLeft, motorSpeedRight, motorSpeedLeft,
+              power, speedMode, errorCode, angleCounter
+            });
+
+            // Update UI
+            updateMotorStatusDisplay({
+              battery, buzzer, joystickForward, joystickTurn, batteryLevel,
+              batteryCurrent, motorAngleRight, motorAngleLeft, motorSpeedRight, motorSpeedLeft,
+              power, speedMode, errorCode, angleCounter
+            });
+
+            const completeTimestamp = getJapanTimeString();
+            const message = `[${completeTimestamp}] Motor Status Received Complete\n`;
+            dataDisplay.textContent += message;
+            speedProfileDataDisplay.textContent += message;
+            dataDisplay.scrollTop = dataDisplay.scrollHeight;
+            speedProfileDataDisplay.scrollTop = speedProfileDataDisplay.scrollHeight;
+
+            // Remove processed 32 bytes
+            processedBytes += expectedLength;
+          } else {
+            // If data is incomplete, wait for next data
+            break;
+          }
+        } else {
+          // If header doesn't match, check next byte
+          processedBytes++;
+        }
+      }
+      
+      // Remove processed data from buffer
+      if (processedBytes > 0) {
+        motorStatusBuffer = motorStatusBuffer.slice(processedBytes);
+      }
+    }
+
+    // Speed profile input field edit control function
+    function setSpeedProfileInputsEditable(editable) {
+      const inputFields = [
+        'f-m1', 'f-a1', 'f-d1', 'r-m1', 'r-a1', 'r-d1', 't-m1', 't-a1', 't-d1'
+      ];
+      
+      for (let mode = 0; mode <= 5; mode++) {
+        inputFields.forEach(field => {
+          const input = document.getElementById(`${field}-${mode}`);
+          if (input) {
+            input.disabled = !editable;
+            if (!editable) {
+              input.style.backgroundColor = '#f8f9fa';
+              input.style.color = '#6c757d';
+            } else {
+              input.style.backgroundColor = 'white';
+              input.style.color = '#000000';
+            }
+          }
+        });
+      }
+    }
+
+    // Speed profile display update function
+    function updateSpeedProfileDisplay(speedMode) {
+      const profile = speedProfiles[speedMode];
+      if (!profile) return;
+
+      // Update each element
+      document.getElementById(`f-m1-${speedMode}`).value = profile.fM1;
+      document.getElementById(`f-a1-${speedMode}`).value = profile.fA1;
+      document.getElementById(`f-d1-${speedMode}`).value = profile.fD1;
+      document.getElementById(`r-m1-${speedMode}`).value = profile.rM1;
+      document.getElementById(`r-a1-${speedMode}`).value = profile.rA1;
+      document.getElementById(`r-d1-${speedMode}`).value = profile.rD1;
+      document.getElementById(`t-m1-${speedMode}`).value = profile.tM1;
+      document.getElementById(`t-a1-${speedMode}`).value = profile.tA1;
+      document.getElementById(`t-d1-${speedMode}`).value = profile.tD1;
+    }
+
+    // Motor status display update function
+    function updateMotorStatusDisplay(status) {
+      // Update three motor status displays
+      const displayIds = ['', '-velocity', '-start-sending'];
+      
+      // Also update motor status display for basic function tab
+      updateMainMotorStatusDisplay(status);
+      
+      const isModelCR = document.getElementById('model-cr-radio').checked;
+      displayIds.forEach(suffix => {
+        // Battery information
+        const batteryStatusEl = document.getElementById(`battery-status${suffix}`);
+        const buzzerStatusEl = document.getElementById(`buzzer-status${suffix}`);
+        if (isModelCR) {
+          batteryStatusEl.previousElementSibling.textContent = '';
+          batteryStatusEl.textContent = '';
+          buzzerStatusEl.previousElementSibling.textContent = '';
+          buzzerStatusEl.textContent = '';
+        } else {
+          batteryStatusEl.previousElementSibling.textContent = 'Low Level:';
+          batteryStatusEl.textContent = `${status.battery}%`;
+          buzzerStatusEl.previousElementSibling.textContent = 'Low Buzzer:';
+          buzzerStatusEl.textContent = status.buzzer ? 'ON' : 'OFF';
+        }
+        document.getElementById(`battery-level${suffix}`).textContent = `${status.batteryLevel}%`;
+        document.getElementById(`battery-current${suffix}`).textContent = `${(status.batteryCurrent * 2).toFixed(1)}mA`;
+
+        // Joystick Information (displayed as signed 1-byte data)
+        const joystickForwardSigned = status.joystickForward > 127 ? status.joystickForward - 256 : status.joystickForward;
+        const joystickTurnSigned = status.joystickTurn > 127 ? status.joystickTurn - 256 : status.joystickTurn;
+        document.getElementById(`joystick-forward${suffix}`).textContent = joystickForwardSigned;
+        document.getElementById(`joystick-turn${suffix}`).textContent = joystickTurnSigned;
+
+        // Motor angle information (0.001rad unit)
+        document.getElementById(`motor-angle-right${suffix}`).textContent = `${(status.motorAngleRight * 0.001).toFixed(3)}rad`;
+        document.getElementById(`motor-angle-left${suffix}`).textContent = `${(status.motorAngleLeft * 0.001).toFixed(3)}rad`;
+
+        // Motor speed information (0.004km/h unit)
+        document.getElementById(`motor-speed-right${suffix}`).textContent = `${(status.motorSpeedRight * 0.004).toFixed(3)}km/h`;
+        document.getElementById(`motor-speed-left${suffix}`).textContent = `${(status.motorSpeedLeft * 0.004).toFixed(3)}km/h`;
+
+        // System status information
+        document.getElementById(`power-status${suffix}`).textContent = status.power ? 'ON' : 'OFF';
+        // Speed mode display conversion (0→1, 1→2, 2→3, 3→4, others→-)
+        let speedModeDisplay = '-';
+        if (status.speedMode === 0) speedModeDisplay = '1';
+        else if (status.speedMode === 1) speedModeDisplay = '2';
+        else if (status.speedMode === 2) speedModeDisplay = '3';
+        else if (status.speedMode === 3) speedModeDisplay = '4';
+        document.getElementById(`speed-mode${suffix}`).textContent = speedModeDisplay;
+        document.getElementById(`error-code${suffix}`).textContent = status.errorCode || 'None';
+        document.getElementById(`angle-counter${suffix}`).textContent = status.angleCounter;
+
+        // Change color according to error code
+        const errorElement = document.getElementById(`error-code${suffix}`);
+        if (status.errorCode && status.errorCode !== 0) {
+          errorElement.style.color = '#dc3545';
+          errorElement.style.fontWeight = 'bold';
+        } else {
+          errorElement.style.color = '#000';
+          errorElement.style.fontWeight = 'normal';
+        }
+
+        // Change color according to battery level
+        const batteryLevelElement = document.getElementById(`battery-level${suffix}`);
+        if (status.batteryLevel < 20) {
+          batteryLevelElement.style.color = '#dc3545';
+        } else if (status.batteryLevel < 50) {
+          batteryLevelElement.style.color = '#ffc107';
+        } else {
+          batteryLevelElement.style.color = '#28a745';
+        }
+      });
+    }
+
+    // All speed profile setting function
+    async function setAllSpeedProfiles() {
+      if (setSpeedProfilesButton) setSpeedProfilesButton.disabled = true;
+      if (speedProfilesStatus) {
+        speedProfilesStatus.textContent = 'Setting...';
+        speedProfilesStatus.className = 'speed-profile-status speed-profile-loading';
+      }
+
+      try {
+        // Sequentially set Speed Mode 0-5
+        for (let mode = 0; mode <= 5; mode++) {
+          if (speedProfilesStatus) speedProfilesStatus.textContent = `Speed Mode ${mode} Setting...`;
+          
+          await setSpeedProfile(mode);
+          
+          // Wait 150ms before proceeding to next mode
+          await new Promise(resolve => setTimeout(resolve, 150));
+        }
+
+        if (speedProfilesStatus) {
+          speedProfilesStatus.textContent = 'Setting Complete';
+          speedProfilesStatus.className = 'speed-profile-status speed-profile-success';
+        }
+      } catch (error) {
+        console.error('Speed Profile Setting Error:', error);
+        if (speedProfilesStatus) {
+          speedProfilesStatus.textContent = 'Setting Error';
+          speedProfilesStatus.className = 'speed-profile-status speed-profile-error';
+        }
+      } finally {
+        if (setSpeedProfilesButton) setSpeedProfilesButton.disabled = false;
+      }
+    }
+
+    // Individual speed profile setting function
+    async function setSpeedProfile(speedMode) {
+      try {
+        // Get speed profile information from input values
+        const fM1 = parseInt(document.getElementById(`f-m1-${speedMode}`).value) || 0;
+        const fA1 = parseInt(document.getElementById(`f-a1-${speedMode}`).value) || 0;
+        const fD1 = parseInt(document.getElementById(`f-d1-${speedMode}`).value) || 0;
+        const rM1 = parseInt(document.getElementById(`r-m1-${speedMode}`).value) || 0;
+        const rA1 = parseInt(document.getElementById(`r-a1-${speedMode}`).value) || 0;
+        const rD1 = parseInt(document.getElementById(`r-d1-${speedMode}`).value) || 0;
+        const tM1 = parseInt(document.getElementById(`t-m1-${speedMode}`).value) || 0;
+        const tA1 = parseInt(document.getElementById(`t-a1-${speedMode}`).value) || 0;
+        const tD1 = parseInt(document.getElementById(`t-d1-${speedMode}`).value) || 0;
+
+        // Calculate checksum (XOR of header + speed profile information)
+        const header = [0xAF, 0x0C, 0x04];
+        const profileData = [speedMode, fM1, fA1, fD1, rM1, rA1, rD1, tM1, tA1, tD1];
+        let checksum = 0;
+
+        // Calculate XOR of header and profile data
+        [...header, ...profileData].forEach(byte => {
+          checksum ^= byte;
+        });
+
+        // Build speed profile setting command
+        const setCommand = new Uint8Array([
+          0xAF, 0x0C, 0x04, // Header
+          speedMode, fM1, fA1, fD1, rM1, rA1, rD1, tM1, tA1, tD1, // Speed profile information
+          checksum // Checksum
+        ]);
+
+        await writeToBothPorts(setCommand);
+
+        const timestamp = getJapanTimeString();
+        const hexData = Array.from(setCommand).map(byte => '0x' + byte.toString(16).toUpperCase().padStart(2, '0')).join(' ');
+        const message = `[${timestamp}] Send Speed Profile Setting (Mode ${speedMode}): ${hexData}\n`;
+        dataDisplay.textContent += message;
+        speedProfileDataDisplay.textContent += message;
+        dataDisplay.scrollTop = dataDisplay.scrollHeight;
+        speedProfileDataDisplay.scrollTop = speedProfileDataDisplay.scrollHeight;
+
+      } catch (error) {
+        console.error('Speed Profile Setting Send Error:', error);
+        throw error;
+      }
+    }
+
+    // Custom command function
+    // Real-time command preview update function
+    function updateCommandPreview() {
+      if (!commandHexDisplay || !powerStateInput) return;
+      const powerState = parseInt(powerStateInput.value) || 0;
+      
+      // Input value validation
+      if (powerState < 0 || powerState > 255) {
+        commandHexDisplay.textContent = 'Input value is invalid (0-255)';
+        commandHexDisplay.style.color = '#dc3545';
+        return;
+      }
+
+      // Build SET_POWER command
+      const header = [0xAF, 0x03, 0x02, powerState];
+      let checksum = 0;
+      header.forEach(byte => {
+        checksum ^= byte;
+      });
+
+      const setPowerCommand = [...header, checksum];
+      const hexData = setPowerCommand.map(byte => '0x' + byte.toString(16).toUpperCase().padStart(2, '0')).join(' ');
+      
+      commandHexDisplay.textContent = hexData;
+      commandHexDisplay.style.color = '#000000';
+    }
+
+    // Real-time preview update on input value change
+    if (powerStateInput) powerStateInput.addEventListener('input', updateCommandPreview);
+
+    // START_SENDING_DATA command real-time preview update function
+    function updateStartSendingDataPreview() {
+      if (!startSendingDataHexDisplay || !dataSetInput) return;
+      const dataSet = parseInt(dataSetInput.value) || 0;
+      const sendInterval = parseInt(sendIntervalInput.value) || 0;
+      const speedProfile = parseInt(speedProfileInput.value) || 0;
+      
+      // Input value validation
+      if (dataSet < 0 || dataSet > 255) {
+        startSendingDataHexDisplay.textContent = 'Data set number is invalid (0-255)';
+        startSendingDataHexDisplay.style.color = '#dc3545';
+        return;
+      }
+      if (sendInterval < 0 || sendInterval > 65535) {
+        startSendingDataHexDisplay.textContent = 'Send interval is invalid (0-65535)';
+        startSendingDataHexDisplay.style.color = '#dc3545';
+        return;
+      }
+      if (speedProfile < 0 || speedProfile > 255) {
+        startSendingDataHexDisplay.textContent = 'Speed Profile Numberis invalid (0-255)';
+        startSendingDataHexDisplay.style.color = '#dc3545';
+        return;
+      }
+
+      // Build START_SENDING_DATA command
+      // Format: 0xAF, 0x06, 0x00, [Dataset number], [Send interval high], [Send interval low], [Speed Profile Number], [Checksum]
+      const header = [0xAF, 0x06, 0x00, dataSet];
+      const intervalHigh = (sendInterval >> 8) & 0xFF; // High byte
+      const intervalLow = sendInterval & 0xFF; // Low byte
+      const data = [intervalHigh, intervalLow, speedProfile];
+      
+      let checksum = 0;
+      [...header, ...data].forEach(byte => {
+        checksum ^= byte;
+      });
+
+      const startSendingDataCommand = [...header, ...data, checksum];
+      const hexData = startSendingDataCommand.map(byte => '0x' + byte.toString(16).toUpperCase().padStart(2, '0')).join(' ');
+      
+      startSendingDataHexDisplay.textContent = hexData;
+      startSendingDataHexDisplay.style.color = '#000000';
+    }
+
+    // Real-time preview update on START_SENDING_DATA input value change
+    if (dataSetInput) dataSetInput.addEventListener('input', updateStartSendingDataPreview);
+    if (sendIntervalInput) sendIntervalInput.addEventListener('input', updateStartSendingDataPreview);
+    if (speedProfileInput) speedProfileInput.addEventListener('input', updateStartSendingDataPreview);
+
+    // SET_JOYSTICK command real-time preview update function
+    function updateSetJoystickPreview() {
+      if (!setJoystickHexDisplay || !bodyPriorityInput) return;
+      const bodyPriority = parseInt(bodyPriorityInput.value) || 0;
+      const forwardBackward = parseInt(forwardBackwardInput.value) || 0;
+      const leftRight = parseInt(leftRightInput.value) || 0;
+      
+      // Input value validation
+      if (bodyPriority < 0 || bodyPriority > 255) {
+        setJoystickHexDisplay.textContent = 'Body Priorityis invalid (0-255)';
+        setJoystickHexDisplay.style.color = '#dc3545';
+        return;
+      }
+      if (forwardBackward < -128 || forwardBackward > 127) {
+        setJoystickHexDisplay.textContent = 'Forward/Backward Directionis invalid (-128-127)';
+        setJoystickHexDisplay.style.color = '#dc3545';
+        return;
+      }
+      if (leftRight < -128 || leftRight > 127) {
+        setJoystickHexDisplay.textContent = 'Left/Right Turn Directionis invalid (-128-127)';
+        setJoystickHexDisplay.style.color = '#dc3545';
+        return;
+      }
+
+      // Build SET_JOYSTICK command
+      // Format: 0xAF, 0x05, 0x03, [Body Priority], [Forward/Backward Direction], [Left/Right Turn Direction], [Checksum]
+      const header = [0xAF, 0x05, 0x03, bodyPriority];
+      const data = [forwardBackward, leftRight];
+      
+      let checksum = 0;
+      [...header, ...data].forEach(byte => {
+        checksum ^= byte;
+      });
+
+      const setJoystickCommand = [...header, ...data, checksum];
+      const hexData = setJoystickCommand.map(byte => '0x' + byte.toString(16).toUpperCase().padStart(2, '0')).join(' ');
+      
+      setJoystickHexDisplay.textContent = hexData;
+      setJoystickHexDisplay.style.color = '#000000';
+    }
+
+    // Real-time preview update on SET_JOYSTICK input value change
+    if (bodyPriorityInput) bodyPriorityInput.addEventListener('input', updateSetJoystickPreview);
+    if (forwardBackwardInput) forwardBackwardInput.addEventListener('input', updateSetJoystickPreview);
+    if (leftRightInput) leftRightInput.addEventListener('input', updateSetJoystickPreview);
+
+    // SET_SPEED_PROFILE command real-time preview update function
+    function updateSetSpeedProfilePreview() {
+      if (!setSpeedProfileHexDisplay) return;
+      const speedProfileData = [];
+      let hasError = false;
+      
+      // Get from 4th byte to 13th byte
+      for (let i = 4; i <= 13; i++) {
+        if (!speedProfileInputs[i]) return;
+        const value = parseInt(speedProfileInputs[i].value) || 0;
+        
+        // Input value validation
+        if (value < 0 || value > 255) {
+          setSpeedProfileHexDisplay.textContent = `${i}th Byte is invalid (0-255)`;
+          setSpeedProfileHexDisplay.style.color = '#dc3545';
+          hasError = true;
+          break;
+        }
+        
+        speedProfileData.push(value);
+      }
+      
+      if (hasError) return;
+
+      // Build SET_SPEED_PROFILE command
+      // Format: 0xAF, 0x0C, 0x04, [4th Byte], [5th Byte], ..., [13th byte], [Checksum]
+      const header = [0xAF, 0x0C, 0x04];
+      
+      let checksum = 0;
+      [...header, ...speedProfileData].forEach(byte => {
+        checksum ^= byte;
+      });
+
+      const setSpeedProfileCommand = [...header, ...speedProfileData, checksum];
+      const hexData = setSpeedProfileCommand.map(byte => '0x' + byte.toString(16).toUpperCase().padStart(2, '0')).join(' ');
+      
+      setSpeedProfileHexDisplay.textContent = hexData;
+      setSpeedProfileHexDisplay.style.color = '#000000';
+    }
+
+    // Real-time preview update on SET_SPEED_PROFILE input value change
+    for (let i = 4; i <= 13; i++) {
+      if (speedProfileInputs[i]) speedProfileInputs[i].addEventListener('input', updateSetSpeedProfilePreview);
+    }
+
+    // SET_BATTERY_SAVING command real-time preview update function
+    function updateSetBatterySavingPreview() {
+      if (!setBatterySavingHexDisplay || !batteryLevelInput) return;
+      const batteryLevel = parseInt(batteryLevelInput.value) || 0;
+      const buzzerSetting = parseInt(buzzerSettingInput.value) || 0;
+      
+      // Input value validation
+      if (batteryLevel < 0 || batteryLevel > 255) {
+        setBatterySavingHexDisplay.textContent = 'Battery saving levelis invalid (0-255)';
+        setBatterySavingHexDisplay.style.color = '#dc3545';
+        return;
+      }
+      if (buzzerSetting < 0 || buzzerSetting > 255) {
+        setBatterySavingHexDisplay.textContent = 'Buzzer settingis invalid (0-255)';
+        setBatterySavingHexDisplay.style.color = '#dc3545';
+        return;
+      }
+
+      // Build SET_BATTERY_SAVING command
+      // Format: 0xAF, 0x04, 0x06, [Battery saving level], [Buzzer setting], [Checksum]
+      const header = [0xAF, 0x04, 0x06, batteryLevel, buzzerSetting];
+      
+      let checksum = 0;
+      header.forEach(byte => {
+        checksum ^= byte;
+      });
+
+      const setBatterySavingCommand = [...header, checksum];
+      const hexData = setBatterySavingCommand.map(byte => '0x' + byte.toString(16).toUpperCase().padStart(2, '0')).join(' ');
+      
+      setBatterySavingHexDisplay.textContent = hexData;
+      setBatterySavingHexDisplay.style.color = '#000000';
+    }
+
+    // Real-time preview update on SET_BATTERY_SAVING input value change
+    if (batteryLevelInput) batteryLevelInput.addEventListener('input', updateSetBatterySavingPreview);
+    if (buzzerSettingInput) buzzerSettingInput.addEventListener('input', updateSetBatterySavingPreview);
+
+    // SET_VELOCITY command real-time preview update function
+    function updateSetVelocityPreview() {
+      if (!setVelocityHexDisplay || !velocityBodyPriorityInput) return;
+      const bodyPriority = parseInt(velocityBodyPriorityInput.value) || 0;
+      const forwardBackwardVelocity = parseInt(forwardBackwardVelocityInput.value) || 0;
+      const leftRightVelocity = parseInt(leftRightVelocityInput.value) || 0;
+      
+      // Input value validation
+      if (bodyPriority < 0 || bodyPriority > 255) {
+        setVelocityHexDisplay.textContent = 'Body Priorityis invalid (0-255)';
+        setVelocityHexDisplay.style.color = '#dc3545';
+        return;
+      }
+      if (forwardBackwardVelocity < -32768 || forwardBackwardVelocity > 32767) {
+        setVelocityHexDisplay.textContent = 'Forward/Backward Directionspeedis invalid (-32768-32767)';
+        setVelocityHexDisplay.style.color = '#dc3545';
+        return;
+      }
+      if (leftRightVelocity < -32768 || leftRightVelocity > 32767) {
+        setVelocityHexDisplay.textContent = 'Left/Right Turn Directionspeedis invalid (-32768-32767)';
+        setVelocityHexDisplay.style.color = '#dc3545';
+        return;
+      }
+
+      // Build SET_VELOCITY command
+      // Format: 0xAF, 0x07, 0x08, [Body Priority], [Forward/Backward Direction speed high], [Forward/Backward Direction speed low], [Left/Right Turn Direction speed high], [Left/Right Turn Direction speed low], [Checksum]
+      const header = [0xAF, 0x07, 0x08, bodyPriority];
+      const forwardBackwardHigh = (forwardBackwardVelocity >> 8) & 0xFF; // High byte
+      const forwardBackwardLow = forwardBackwardVelocity & 0xFF; // Low byte
+      const leftRightHigh = (leftRightVelocity >> 8) & 0xFF; // High byte
+      const leftRightLow = leftRightVelocity & 0xFF; // Low byte
+      const data = [forwardBackwardHigh, forwardBackwardLow, leftRightHigh, leftRightLow];
+      
+      let checksum = 0;
+      [...header, ...data].forEach(byte => {
+        checksum ^= byte;
+      });
+
+      const setVelocityCommand = [...header, ...data, checksum];
+      const hexData = setVelocityCommand.map(byte => '0x' + byte.toString(16).toUpperCase().padStart(2, '0')).join(' ');
+      
+      setVelocityHexDisplay.textContent = hexData;
+      setVelocityHexDisplay.style.color = '#000000';
+    }
+
+    // Real-time preview update on SET_VELOCITY input value change
+    if (velocityBodyPriorityInput) velocityBodyPriorityInput.addEventListener('input', updateSetVelocityPreview);
+    if (forwardBackwardVelocityInput) forwardBackwardVelocityInput.addEventListener('input', updateSetVelocityPreview);
+    if (leftRightVelocityInput) leftRightVelocityInput.addEventListener('input', updateSetVelocityPreview);
+
+    // SET_POWERCommandSend
+    if (sendSetPowerButton) sendSetPowerButton.addEventListener('click', async () => {
+      if (hasWritablePort()) {
+        try {
+          const powerState = parseInt(powerStateInput.value) || 0;
+          
+          // Input value validation
+          if (powerState < 0 || powerState > 255) {
+            alert('Please enter a value between 0 and 255.');
+            return;
+          }
+
+          // Build SET_POWER command
+          // Format: 0xAF, 0x03, 0x02, [4th Byte], [Checksum]
+          const header = [0xAF, 0x03, 0x02, powerState];
+          let checksum = 0;
+          header.forEach(byte => {
+            checksum ^= byte;
+          });
+
+          const setPowerCommand = new Uint8Array([...header, checksum]);
+          await writeToBothPorts(setPowerCommand);
+
+          const timestamp = getJapanTimeString();
+          const hexData = Array.from(setPowerCommand).map(byte => '0x' + byte.toString(16).toUpperCase().padStart(2, '0')).join(' ');
+          const message = `[${timestamp}] Send SET_POWER: ${hexData}\n`;
+          dataDisplay.textContent += message;
+          speedProfileDataDisplay.textContent += message;
+          customCommandDataDisplay.textContent += message;
+          dataDisplay.scrollTop = dataDisplay.scrollHeight;
+          speedProfileDataDisplay.scrollTop = speedProfileDataDisplay.scrollHeight;
+          customCommandDataDisplay.scrollTop = customCommandDataDisplay.scrollHeight;
+
+        } catch (error) {
+          console.error('SET_POWER Send Error:', error);
+        }
+      }
+    });
+
+    // START_SENDING_DATACommandSend
+    if (sendStartSendingDataButton) sendStartSendingDataButton.addEventListener('click', async () => {
+      if (hasWritablePort()) {
+        try {
+          const dataSet = parseInt(dataSetInput.value) || 0;
+          const sendInterval = parseInt(sendIntervalInput.value) || 0;
+          const speedProfile = parseInt(speedProfileInput.value) || 0;
+          
+          // Input value validation
+          if (dataSet < 0 || dataSet > 255) {
+            alert('Please enter a data set number between 0 and 255.');
+            return;
+          }
+          if (sendInterval < 0 || sendInterval > 65535) {
+            alert('Please enter a send interval between 0 and 65535.');
+            return;
+          }
+          if (speedProfile < 0 || speedProfile > 255) {
+            alert('Please enter a speed profile number between 0 and 255.');
+            return;
+          }
+
+          // Build START_SENDING_DATA command
+          // Format: 0xAF, 0x06, 0x00, [Dataset number], [Send interval high], [Send interval low], [Speed Profile Number], [Checksum]
+          const header = [0xAF, 0x06, 0x00, dataSet];
+          const intervalHigh = (sendInterval >> 8) & 0xFF; // High byte
+          const intervalLow = sendInterval & 0xFF; // Low byte
+          const data = [intervalHigh, intervalLow, speedProfile];
+          
+          let checksum = 0;
+          [...header, ...data].forEach(byte => {
+            checksum ^= byte;
+          });
+
+          const startSendingDataCommand = new Uint8Array([...header, ...data, checksum]);
+          await writeToBothPorts(startSendingDataCommand);
+
+          const timestamp = getJapanTimeString();
+          const hexData = Array.from(startSendingDataCommand).map(byte => '0x' + byte.toString(16).toUpperCase().padStart(2, '0')).join(' ');
+          const message = `[${timestamp}] Send START_SENDING_DATA: ${hexData}\n`;
+          dataDisplay.textContent += message;
+          speedProfileDataDisplay.textContent += message;
+          customCommandDataDisplay.textContent += message;
+          dataDisplay.scrollTop = dataDisplay.scrollHeight;
+          speedProfileDataDisplay.scrollTop = speedProfileDataDisplay.scrollHeight;
+          customCommandDataDisplay.scrollTop = customCommandDataDisplay.scrollHeight;
+
+        } catch (error) {
+          console.error('START_SENDING_DATA Send Error:', error);
+        }
+      }
+    });
+
+    // STOP_SENDING_DATACommandSend
+    if (sendStopSendingDataButton) sendStopSendingDataButton.addEventListener('click', async () => {
+      if (hasWritablePort()) {
+        try {
+          // Build STOP_SENDING_DATA command
+          // Format: 0xAF, 0x02, 0x01, 0xAC (4 bytes fixed)
+          const stopSendingDataCommand = new Uint8Array([0xAF, 0x02, 0x01, 0xAC]);
+          await writeToBothPorts(stopSendingDataCommand);
+
+          const timestamp = getJapanTimeString();
+          const hexData = Array.from(stopSendingDataCommand).map(byte => '0x' + byte.toString(16).toUpperCase().padStart(2, '0')).join(' ');
+          const message = `[${timestamp}] Send STOP_SENDING_DATA: ${hexData}\n`;
+          dataDisplay.textContent += message;
+          speedProfileDataDisplay.textContent += message;
+          customCommandDataDisplay.textContent += message;
+          dataDisplay.scrollTop = dataDisplay.scrollHeight;
+          speedProfileDataDisplay.scrollTop = speedProfileDataDisplay.scrollHeight;
+          customCommandDataDisplay.scrollTop = customCommandDataDisplay.scrollHeight;
+
+        } catch (error) {
+          console.error('STOP_SENDING_DATA Send Error:', error);
+        }
+      }
+    });
+
+    // SET_JOYSTICKCommandSend
+    if (sendSetJoystickButton) sendSetJoystickButton.addEventListener('click', async () => {
+      if (hasWritablePort()) {
+        try {
+          const bodyPriority = parseInt(bodyPriorityInput.value) || 0;
+          const forwardBackward = parseInt(forwardBackwardInput.value) || 0;
+          const leftRight = parseInt(leftRightInput.value) || 0;
+          
+          // Input value validation
+          if (bodyPriority < 0 || bodyPriority > 255) {
+            alert('Please enter Body Priority between 0 and 255.');
+            return;
+          }
+          if (forwardBackward < -128 || forwardBackward > 127) {
+            alert('Please enter Forward/Backward Direction between -128 and 127.');
+            return;
+          }
+          if (leftRight < -128 || leftRight > 127) {
+            alert('Please enter Left/Right Turn Direction between -128 and 127.');
+            return;
+          }
+
+          // Build SET_JOYSTICK command
+          // Format: 0xAF, 0x05, 0x03, [Body Priority], [Forward/Backward Direction], [Left/Right Turn Direction], [Checksum]
+          const header = [0xAF, 0x05, 0x03, bodyPriority];
+          const data = [forwardBackward, leftRight];
+          
+          let checksum = 0;
+          [...header, ...data].forEach(byte => {
+            checksum ^= byte;
+          });
+
+          const setJoystickCommand = new Uint8Array([...header, ...data, checksum]);
+          await writeToBothPorts(setJoystickCommand);
+
+          const timestamp = getJapanTimeString();
+          const hexData = Array.from(setJoystickCommand).map(byte => '0x' + byte.toString(16).toUpperCase().padStart(2, '0')).join(' ');
+          const message = `[${timestamp}] Send SET_JOYSTICK: ${hexData}\n`;
+          dataDisplay.textContent += message;
+          speedProfileDataDisplay.textContent += message;
+          customCommandDataDisplay.textContent += message;
+          dataDisplay.scrollTop = dataDisplay.scrollHeight;
+          speedProfileDataDisplay.scrollTop = speedProfileDataDisplay.scrollHeight;
+          customCommandDataDisplay.scrollTop = customCommandDataDisplay.scrollHeight;
+
+        } catch (error) {
+          console.error('SET_JOYSTICK Send Error:', error);
+        }
+      }
+    });
+
+    // SET_JOYSTICK continuous send function
+    let joystickContinuousInterval = null;
+    let isJoystickContinuousSending = false;
+
+    // Start continuous send
+    function startJoystickContinuousSending() {
+      if (isJoystickContinuousSending) return;
+      
+      isJoystickContinuousSending = true;
+      sendSetJoystickContinuousButton.classList.add('sending');
+      sendSetJoystickContinuousButton.textContent = 'Sending... SET_JOYSTICK (Continuous)';
+      
+      // Send SET_JOYSTICK command at 100ms intervals
+      joystickContinuousInterval = setInterval(async () => {
+        if (hasWritablePort()) {
+          try {
+            const bodyPriority = parseInt(bodyPriorityInput.value) || 0;
+            const forwardBackward = parseInt(forwardBackwardInput.value) || 0;
+            const leftRight = parseInt(leftRightInput.value) || 0;
+            
+            // Input value validation
+            if (bodyPriority < 0 || bodyPriority > 255) {
+              stopJoystickContinuousSending();
+              alert('Please enter Body Priority between 0 and 255.');
+              return;
+            }
+            if (forwardBackward < -128 || forwardBackward > 127) {
+              stopJoystickContinuousSending();
+              alert('Please enter Forward/Backward Direction between -128 and 127.');
+              return;
+            }
+            if (leftRight < -128 || leftRight > 127) {
+              stopJoystickContinuousSending();
+              alert('Please enter Left/Right Turn Direction between -128 and 127.');
+              return;
+            }
+
+            // Build SET_JOYSTICK command
+            const header = [0xAF, 0x05, 0x03, bodyPriority, forwardBackward, leftRight];
+            
+            let checksum = 0;
+            header.forEach(byte => {
+              checksum ^= byte;
+            });
+
+            const setJoystickCommand = new Uint8Array([...header, checksum]);
+            await writeToBothPorts(setJoystickCommand);
+
+            const timestamp = getJapanTimeString();
+            const hexData = Array.from(setJoystickCommand).map(byte => '0x' + byte.toString(16).toUpperCase().padStart(2, '0')).join(' ');
+            const message = `[${timestamp}] Send SET_JOYSTICK (Continuous): ${hexData}\n`;
+            dataDisplay.textContent += message;
+            speedProfileDataDisplay.textContent += message;
+            customCommandDataDisplay.textContent += message;
+            dataDisplay.scrollTop = dataDisplay.scrollHeight;
+            speedProfileDataDisplay.scrollTop = speedProfileDataDisplay.scrollHeight;
+            customCommandDataDisplay.scrollTop = customCommandDataDisplay.scrollHeight;
+
+          } catch (error) {
+            console.error('Send SET_JOYSTICK (Continuous) Error:', error);
+            stopJoystickContinuousSending();
+          }
+        } else {
+          stopJoystickContinuousSending();
+        }
+      }, 100);
+    }
+
+    // Stop continuous send
+    function stopJoystickContinuousSending() {
+      if (!isJoystickContinuousSending) return;
+      
+      isJoystickContinuousSending = false;
+      sendSetJoystickContinuousButton.classList.remove('sending');
+      sendSetJoystickContinuousButton.textContent = 'Send SET_JOYSTICK (Continuous)';
+      
+      if (joystickContinuousInterval) {
+        clearInterval(joystickContinuousInterval);
+        joystickContinuousInterval = null;
+      }
+    }
+
+    // Continuous send button event listener
+    if (sendSetJoystickContinuousButton) sendSetJoystickContinuousButton.addEventListener('mousedown', () => {
+      if (hasWritablePort()) {
+        startJoystickContinuousSending();
+      }
+    });
+
+    if (sendSetJoystickContinuousButton) sendSetJoystickContinuousButton.addEventListener('mouseup', () => {
+      stopJoystickContinuousSending();
+    });
+
+    if (sendSetJoystickContinuousButton) sendSetJoystickContinuousButton.addEventListener('mouseleave', () => {
+      stopJoystickContinuousSending();
+    });
+
+    // Keyboard event (long press support for Space key)
+    document.addEventListener('keydown', (event) => {
+      if (event.code === 'Space' && event.target === sendSetJoystickContinuousButton) {
+        event.preventDefault();
+        if (hasWritablePort()) {
+          startJoystickContinuousSending();
+        }
+      }
+    });
+
+    document.addEventListener('keyup', (event) => {
+      if (event.code === 'Space') {
+        stopJoystickContinuousSending();
+      }
+    });
+
+    // SET_SPEED_PROFILECommandSend
+    if (sendSetSpeedProfileButton) sendSetSpeedProfileButton.addEventListener('click', async () => {
+      if (hasWritablePort()) {
+        try {
+          const speedProfileData = [];
+          
+          // Get from 4th byte to 13th byte
+          for (let i = 4; i <= 13; i++) {
+            const value = parseInt(speedProfileInputs[i].value) || 0;
+            
+            // Input value validation
+            if (value < 0 || value > 255) {
+              alert(`${i}byte must be between 0 and 255.`);
+              return;
+            }
+            
+            speedProfileData.push(value);
+          }
+
+          // Build SET_SPEED_PROFILE command
+          // Format: 0xAF, 0x0C, 0x04, [4th Byte], [5th Byte], ..., [13th byte], [Checksum]
+          const header = [0xAF, 0x0C, 0x04];
+          
+          let checksum = 0;
+          [...header, ...speedProfileData].forEach(byte => {
+            checksum ^= byte;
+          });
+
+          const setSpeedProfileCommand = new Uint8Array([...header, ...speedProfileData, checksum]);
+          await writeToBothPorts(setSpeedProfileCommand);
+
+          const timestamp = getJapanTimeString();
+          const hexData = Array.from(setSpeedProfileCommand).map(byte => '0x' + byte.toString(16).toUpperCase().padStart(2, '0')).join(' ');
+          const message = `[${timestamp}] Send SET_SPEED_PROFILE: ${hexData}\n`;
+          dataDisplay.textContent += message;
+          speedProfileDataDisplay.textContent += message;
+          customCommandDataDisplay.textContent += message;
+          dataDisplay.scrollTop = dataDisplay.scrollHeight;
+          speedProfileDataDisplay.scrollTop = speedProfileDataDisplay.scrollHeight;
+          customCommandDataDisplay.scrollTop = customCommandDataDisplay.scrollHeight;
+
+        } catch (error) {
+          console.error('SET_SPEED_PROFILE Send Error:', error);
+        }
+      }
+    });
+
+    // SET_BATTERY_SAVINGCommandSend
+    if (sendSetBatterySavingButton) sendSetBatterySavingButton.addEventListener('click', async () => {
+      if (hasWritablePort()) {
+        try {
+          const batteryLevel = parseInt(batteryLevelInput.value) || 0;
+          const buzzerSetting = parseInt(buzzerSettingInput.value) || 0;
+          
+          // Input value validation
+          if (batteryLevel < 0 || batteryLevel > 255) {
+            alert('Please enter a battery saving level between 0 and 255.');
+            return;
+          }
+          if (buzzerSetting < 0 || buzzerSetting > 255) {
+            alert('Please enter a buzzer setting between 0 and 255.');
+            return;
+          }
+
+          // Build SET_BATTERY_SAVING command
+          // Format: 0xAF, 0x04, 0x06, [Battery saving level], [Buzzer setting], [Checksum]
+          const header = [0xAF, 0x04, 0x06, batteryLevel, buzzerSetting];
+          
+          let checksum = 0;
+          header.forEach(byte => {
+            checksum ^= byte;
+          });
+
+          const setBatterySavingCommand = new Uint8Array([...header, checksum]);
+          await writeToBothPorts(setBatterySavingCommand);
+
+          const timestamp = getJapanTimeString();
+          const hexData = Array.from(setBatterySavingCommand).map(byte => '0x' + byte.toString(16).toUpperCase().padStart(2, '0')).join(' ');
+          const message = `[${timestamp}] Send SET_BATTERY_SAVING: ${hexData}\n`;
+          dataDisplay.textContent += message;
+          speedProfileDataDisplay.textContent += message;
+          customCommandDataDisplay.textContent += message;
+          dataDisplay.scrollTop = dataDisplay.scrollHeight;
+          speedProfileDataDisplay.scrollTop = speedProfileDataDisplay.scrollHeight;
+          customCommandDataDisplay.scrollTop = customCommandDataDisplay.scrollHeight;
+
+        } catch (error) {
+          console.error('SET_BATTERY_SAVING Send Error:', error);
+        }
+      }
+    });
+
+    // SET_VELOCITYCommandSend
+    if (sendSetVelocityButton) sendSetVelocityButton.addEventListener('click', async () => {
+      if (hasWritablePort()) {
+        try {
+          const bodyPriority = parseInt(velocityBodyPriorityInput.value) || 0;
+          const forwardBackwardVelocity = parseInt(forwardBackwardVelocityInput.value) || 0;
+          const leftRightVelocity = parseInt(leftRightVelocityInput.value) || 0;
+          
+          // Input value validation
+          if (bodyPriority < 0 || bodyPriority > 255) {
+            alert('Please enter Body Priority between 0 and 255.');
+            return;
+          }
+          if (forwardBackwardVelocity < -32768 || forwardBackwardVelocity > 32767) {
+            alert('Forward/Backward Directionspeed must be between -32768 and 32767.');
+            return;
+          }
+          if (leftRightVelocity < -32768 || leftRightVelocity > 32767) {
+            alert('Left/Right Turn Directionspeed must be between -32768 and 32767.');
+            return;
+          }
+
+          // Build SET_VELOCITY command
+          // Format: 0xAF, 0x07, 0x08, [Body Priority], [Forward/Backward Direction speed high], [Forward/Backward Direction speed low], [Left/Right Turn Direction speed high], [Left/Right Turn Direction speed low], [Checksum]
+          const header = [0xAF, 0x07, 0x08, bodyPriority];
+          const forwardBackwardHigh = (forwardBackwardVelocity >> 8) & 0xFF;
+          const forwardBackwardLow = forwardBackwardVelocity & 0xFF;
+          const leftRightHigh = (leftRightVelocity >> 8) & 0xFF;
+          const leftRightLow = leftRightVelocity & 0xFF;
+          const data = [forwardBackwardHigh, forwardBackwardLow, leftRightHigh, leftRightLow];
+          
+          let checksum = 0;
+          [...header, ...data].forEach(byte => {
+            checksum ^= byte;
+          });
+
+          const setVelocityCommand = new Uint8Array([...header, ...data, checksum]);
+          await writeToBothPorts(setVelocityCommand);
+
+          const timestamp = getJapanTimeString();
+          const hexData = Array.from(setVelocityCommand).map(byte => '0x' + byte.toString(16).toUpperCase().padStart(2, '0')).join(' ');
+          const message = `[${timestamp}] Send SET_VELOCITY: ${hexData}\n`;
+          dataDisplay.textContent += message;
+          speedProfileDataDisplay.textContent += message;
+          customCommandDataDisplay.textContent += message;
+          dataDisplay.scrollTop = dataDisplay.scrollHeight;
+          speedProfileDataDisplay.scrollTop = speedProfileDataDisplay.scrollHeight;
+          customCommandDataDisplay.scrollTop = customCommandDataDisplay.scrollHeight;
+
+        } catch (error) {
+          console.error('Send SET_VELOCITY Error:', error);
+        }
+      }
+    });
+
+    // SET_VELOCITY continuous send function
+    let velocityContinuousInterval = null;
+    let isVelocityContinuousSending = false;
+
+    // Start continuous send
+    function startVelocityContinuousSending() {
+      if (isVelocityContinuousSending) return;
+      
+      isVelocityContinuousSending = true;
+      sendSetVelocityContinuousButton.classList.add('sending');
+      sendSetVelocityContinuousButton.textContent = 'Sending... SET_VELOCITY (Continuous)';
+      
+      // Send SET_VELOCITY command at 100ms intervals
+      velocityContinuousInterval = setInterval(async () => {
+        if (hasWritablePort()) {
+          try {
+            const bodyPriority = parseInt(velocityBodyPriorityInput.value) || 0;
+            const forwardBackwardVelocity = parseInt(forwardBackwardVelocityInput.value) || 0;
+            const leftRightVelocity = parseInt(leftRightVelocityInput.value) || 0;
+            
+            // Input value validation
+            if (bodyPriority < 0 || bodyPriority > 255) {
+              stopVelocityContinuousSending();
+              alert('Please enter Body Priority between 0 and 255.');
+              return;
+            }
+            if (forwardBackwardVelocity < -32768 || forwardBackwardVelocity > 32767) {
+              stopVelocityContinuousSending();
+              alert('Forward/Backward Directionspeed must be between -32768 and 32767.');
+              return;
+            }
+            if (leftRightVelocity < -32768 || leftRightVelocity > 32767) {
+              stopVelocityContinuousSending();
+              alert('Left/Right Turn Directionspeed must be between -32768 and 32767.');
+              return;
+            }
+
+            // Build SET_VELOCITY command
+            const header = [0xAF, 0x07, 0x08, bodyPriority];
+            const forwardBackwardHigh = (forwardBackwardVelocity >> 8) & 0xFF;
+            const forwardBackwardLow = forwardBackwardVelocity & 0xFF;
+            const leftRightHigh = (leftRightVelocity >> 8) & 0xFF;
+            const leftRightLow = leftRightVelocity & 0xFF;
+            const data = [forwardBackwardHigh, forwardBackwardLow, leftRightHigh, leftRightLow];
+            
+            let checksum = 0;
+            [...header, ...data].forEach(byte => {
+              checksum ^= byte;
+            });
+
+          const setVelocityCommand = new Uint8Array([...header, ...data, checksum]);
+          await writeToBothPorts(setVelocityCommand);
+
+          const timestamp = getJapanTimeString();
+            const hexData = Array.from(setVelocityCommand).map(byte => '0x' + byte.toString(16).toUpperCase().padStart(2, '0')).join(' ');
+            const message = `[${timestamp}] Send SET_VELOCITY (Continuous): ${hexData}\n`;
+            dataDisplay.textContent += message;
+            speedProfileDataDisplay.textContent += message;
+            customCommandDataDisplay.textContent += message;
+            dataDisplay.scrollTop = dataDisplay.scrollHeight;
+            speedProfileDataDisplay.scrollTop = speedProfileDataDisplay.scrollHeight;
+            customCommandDataDisplay.scrollTop = customCommandDataDisplay.scrollHeight;
+
+          } catch (error) {
+            console.error('Send SET_VELOCITY (Continuous) Error:', error);
+            stopVelocityContinuousSending();
+          }
+        } else {
+          stopVelocityContinuousSending();
+        }
+      }, 100);
+    }
+
+    // Stop continuous send
+    function stopVelocityContinuousSending() {
+      if (!isVelocityContinuousSending) return;
+      
+      isVelocityContinuousSending = false;
+      sendSetVelocityContinuousButton.classList.remove('sending');
+      sendSetVelocityContinuousButton.textContent = 'Send SET_VELOCITY (Continuous)';
+      
+      if (velocityContinuousInterval) {
+        clearInterval(velocityContinuousInterval);
+        velocityContinuousInterval = null;
+      }
+    }
+
+    // Continuous send button event listener
+    if (sendSetVelocityContinuousButton) sendSetVelocityContinuousButton.addEventListener('mousedown', () => {
+      if (hasWritablePort()) {
+        startVelocityContinuousSending();
+      }
+    });
+
+    if (sendSetVelocityContinuousButton) sendSetVelocityContinuousButton.addEventListener('mouseup', () => {
+      stopVelocityContinuousSending();
+    });
+
+    if (sendSetVelocityContinuousButton) sendSetVelocityContinuousButton.addEventListener('mouseleave', () => {
+      stopVelocityContinuousSending();
+    });
+
+    // Initialization processing
+    // Disable speed profile input fields
+    setSpeedProfileInputsEditable(false);
+
+    // Update initial command preview
+    updateCommandPreview();
+    updateStartSendingDataPreview();
+    updateSetJoystickPreview();
+    updateSetSpeedProfilePreview();
+    updateSetBatterySavingPreview();
+    updateSetVelocityPreview();
+
+    // Joystick initialization
+    initJoystick();
+  </script>
+</body>
+
+</html>
