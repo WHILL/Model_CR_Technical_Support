@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="WHILLシリアル通信テストツール - Web Serial APIを使用したシリアル通信テストツール" />
+  <meta name="description" content="WHILLオムニプラットフォームテストツール - Web Serial APIを使用したオムニプラットフォームテストツール" />
   <meta name="author" content="WHILL CO.,LTD." />
   <title>WHILL Serial Communication Test Tool</title>
   <style>
@@ -780,20 +780,19 @@
 <body>
   <!-- Fixed Header Section -->
   <div class="fixed-header">
-    <h1><span>WHILL Serial Communication Test Tool (v1.00)</span></h1>
+    <h1><span>WHILL Omni Platform Test Tool (v1.00)</span></h1>
 
     <!-- Pre-connection Display Area -->
     <div id="pre-connection-area" class="pre-connection-area">
       <div class="connection-welcome">
-        <h2>Please connect to WHILL device (Omni Platform)</h2>
-        <p>Connect both SET_A and SET_B. The Basic tab will be available when both are connected.</p>
+        <h2>Please connect to Omni Platform</h2>
         <div style="display: flex; gap: 20px; align-items: center; flex-wrap: wrap; margin: 15px 0;">
           <div style="display: flex; align-items: center; gap: 10px;">
-            <button id="connect-set-a-button" type="button" class="connect-button">Connect SET_A</button>
+            <button id="connect-set-a-button" type="button" class="connect-button">SET_A</button>
             <span id="status-set-a" class="connection-status" style="font-weight: bold; color: #666;">Not connected</span>
           </div>
           <div style="display: flex; align-items: center; gap: 10px;">
-            <button id="connect-set-b-button" type="button" class="connect-button">Connect SET_B</button>
+            <button id="connect-set-b-button" type="button" class="connect-button">SET_B</button>
             <span id="status-set-b" class="connection-status" style="font-weight: bold; color: #666;">Not connected</span>
           </div>
         </div>
@@ -952,7 +951,7 @@
           <button id="turn-right-button" type="button" class="custom-command-button">Turn Right</button>
           <button id="turn-left-button" type="button" class="custom-command-button">Turn Left</button>
         </div>
-        <p style="margin-top: 8px; color: #666; font-size: 11pt;">Swap Port: swap SET_A and SET_B. Turn Right/Left: hold to send SET_VELOCITY(0, ±150) to both.</p>
+        <p style="margin-top: 8px; color: #666; font-size: 11pt;">Swap Port: swap SET_A and SET_B. Turn Right/Left: hold to send SET_VELOCITY(0, ±50) to both.</p>
       </fieldset>
 
       <fieldset>
@@ -1102,7 +1101,7 @@
 
       // Update SET_A button and status
       if (connectSetAButton) {
-        connectSetAButton.textContent = portA ? 'Connected SET_A' : 'Connect SET_A';
+        connectSetAButton.textContent = portA ? 'SET_A' : 'SET_A';
         connectSetAButton.disabled = !!portA;
       }
       if (statusSetA) {
@@ -1112,7 +1111,7 @@
 
       // Update SET_B button and status
       if (connectSetBButton) {
-        connectSetBButton.textContent = portB ? 'Connected SET_B' : 'Connect SET_B';
+        connectSetBButton.textContent = portB ? 'SET_B' : 'SET_B';
         connectSetBButton.disabled = !!portB;
       }
       if (statusSetB) {
@@ -2320,7 +2319,7 @@
       dataDisplay.scrollTop = dataDisplay.scrollHeight;
     });
 
-    // Turn Right / Turn Left: hold to send SET_VELOCITY(0, ±150), release to send (0,0)
+    // Turn Right / Turn Left: hold to send SET_VELOCITY(0, ±50), release to send (0,0)
     let turnRightInterval = null;
     let turnLeftInterval = null;
 
@@ -2350,7 +2349,7 @@
         e.preventDefault();
         if (!hasWritablePort()) return;
         stopTurnIntervals();
-        const cmd = buildSetVelocityCommandFull(0, 150);
+        const cmd = buildSetVelocityCommandFull(0, 50);
         writeToBothPorts(cmd);
         turnRightInterval = setInterval(() => {
           if (hasWritablePort()) writeToBothPorts(cmd);
@@ -2362,7 +2361,7 @@
         e.preventDefault();
         if (!hasWritablePort()) return;
         stopTurnIntervals();
-        const cmd = buildSetVelocityCommandFull(0, 150);
+        const cmd = buildSetVelocityCommandFull(0, 50);
         writeToBothPorts(cmd);
         turnRightInterval = setInterval(() => {
           if (hasWritablePort()) writeToBothPorts(cmd);
@@ -2378,7 +2377,7 @@
         e.preventDefault();
         if (!hasWritablePort()) return;
         stopTurnIntervals();
-        const cmd = buildSetVelocityCommandFull(0, -150);
+        const cmd = buildSetVelocityCommandFull(0, -50);
         writeToBothPorts(cmd);
         turnLeftInterval = setInterval(() => {
           if (hasWritablePort()) writeToBothPorts(cmd);
@@ -2390,7 +2389,7 @@
         e.preventDefault();
         if (!hasWritablePort()) return;
         stopTurnIntervals();
-        const cmd = buildSetVelocityCommandFull(0, -150);
+        const cmd = buildSetVelocityCommandFull(0, -50);
         writeToBothPorts(cmd);
         turnLeftInterval = setInterval(() => {
           if (hasWritablePort()) writeToBothPorts(cmd);
