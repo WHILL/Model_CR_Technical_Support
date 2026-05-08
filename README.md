@@ -59,9 +59,11 @@ Issuesへのお問い合わせは、Model CRシリーズのハードウェアに
 
 - Arduino : [whill-sdk-arduino](https://github.com/WHILL/whill-sdk-arduino)
 
-- ROS1 (melodic) : [ros_whill](https://github.com/WHILL/ros_whill)
-
 - ROS2 (humble) : [ros2_whill](https://github.com/whill-labs/ros2_whill)
+
+**注釈 / Note**  
+ROS 1（Melodic）向けの [ros_whill](https://github.com/WHILL/ros_whill) は、ROS 1 が end-of-life（EOL）となったためサポート対象外です（参考リンクのみ）。  
+This repository targets ROS 1 (Melodic) and is **not supported** because ROS 1 has reached end-of-life (EOL); provided for reference only.
 
 
 ## Tools
