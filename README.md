@@ -69,7 +69,16 @@ This repository targets ROS 1 (Melodic) and is **not supported** because ROS 1 h
 ## Tools
 
 - [WHILL Serial Communication Test Tool](https://whill.github.io/Model_CR_Technical_Support/whill_serial_communication_test_tool.html)
-  - ブラウザから、Model CRシリーズとのシリアル通信をテストできるツール
+  - [EN] A browser-based tool for testing serial communication with the Model CR series.
+    - 1. Connect a PC (with Chrome or Edge available) to the Model CR series via a USB-RS232C conversion cable.
+    - 2. Access the [Test Tool](https://whill.github.io/Model_CR_Technical_Support/whill_serial_communication_test_tool.html) (it can also be downloaded for offline use).
+    - 3. Press the "Connect" button and select the correct port from the dialog.
+    - 4. Use the buttons on each tab to control the Model CR series.
+      - Basic Functions tab: Power ON/OFF, joystick operation
+      - Speed Profile tab: Check/set speed profile
+      - Custom Command tab: Send arbitrary commands
+    - 5. When finished, press "Disconnect" at the top right.
+  - [JP] ブラウザから、Model CRシリーズとのシリアル通信をテストできるツール
     - １．PC（Chrome または Edgeが使える）とModel CRシリーズをUSB-R232C変換ケーブルを介して接続する。
     - ２．[Test Tool](https://whill.github.io/Model_CR_Technical_Support/whill_serial_communication_test_tool.html) にアクセスする（ダウンロードしておくと、オフラインでも使用可）
     - ３．「Connect」ボタンを押下し、ダイアログから正しいポートを選択する。
@@ -78,7 +87,3 @@ This repository targets ROS 1 (Melodic) and is **not supported** because ROS 1 h
       - Speed Profile タブ：スピードプロファイル確認/設定
       - Custom Command タブ：任意コマンドの送信
     - ５．終了時は、右上の「Disconnect」を押下する。
-
-
- - [cr_connection_checker](https://github.com/whill-labs/cr_connection_checker)
-   - Model CRシリーズの接続確認用のツール
